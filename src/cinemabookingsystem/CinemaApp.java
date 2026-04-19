@@ -16,6 +16,7 @@ public class CinemaApp {
     public static void main(String[] args) {
         // TODO code application logic here
         System.out.println("Hello P");
+        System.out.println("p");
     }
     
 }
