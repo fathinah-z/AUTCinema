@@ -30,7 +30,7 @@ public class CancelBookingService {
     }
 
     /**
-     * Refunds are eligible if cancellation happens at least 2 hours before show time.
+     * Refunds are eligible if cancellation happens at least 5 days before show time.
      * Requires the showtime's dateTime for comparison.
      */
     public boolean isRefundEligible(Booking booking, LocalDateTime now) {
@@ -38,6 +38,6 @@ public class CancelBookingService {
         // A booking is refund-eligible if it was made more than 2 hours ago is NOT
         // the criterion — the show must be more than 2 hours away.
         // This simplified version checks booking date as a placeholder.
-        return booking.getBookingDate().plusHours(2).isAfter(now);
+        return booking.getBookingDate().plusDays(5).isAfter(now);
     }
 }
