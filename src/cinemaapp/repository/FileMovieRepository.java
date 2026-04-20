@@ -8,6 +8,7 @@ import java.util.List;
 public class FileMovieRepository implements MovieRepository {
 
     private final List<Movie> movies = new ArrayList<>();
+    private final String filepath = "movies.txt";
 
     public FileMovieRepository() {
         // Seed sample data — replace with file I/O as needed

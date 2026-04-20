@@ -32,6 +32,6 @@ public class Movie {
 
     @Override
     public String toString() {
-        return String.format("[%s] %s (%s) - %d min", movieId, title, rating, runtime);
+        return String.format("%s (%s) - %d min", title, rating, runtime);
     }
 }

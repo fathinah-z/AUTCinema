@@ -28,9 +28,9 @@ public class CLIController {
     }
 
     public void start() {
-        System.out.println("============================================");
-        System.out.println("       Welcome to CinemaApp Booking         ");
-        System.out.println("============================================");
+        System.out.println("===========================================");
+        System.out.println("       Welcome to AUT Cinema Booking       ");
+        System.out.println("===========================================");
 
         boolean running = true;
         while (running) {
@@ -47,7 +47,7 @@ public class CLIController {
                 case "2": makeBooking(); break;
                 case "3": cancelBooking(); break;
                 case "4":
-                    System.out.println("Thank you for using CinemaApp. Goodbye!");
+                    System.out.println("Thank you for using AUT Cinema. Goodbye!");
                     running = false;
                     break;
                 default:
@@ -120,14 +120,17 @@ public class CLIController {
                     seat.getSeatId(), seat.getRow(), seat.isNearAisle(), seat.isAccessible());
         }
 
+        // put book another seat? after each seat booked
         Map<String, AttendeeType> seatAttendeeMap = new LinkedHashMap<>();
         System.out.print("\nHow many seats to book? ");
         int count = parseIntSafe(scanner.nextLine().trim());
 
         for (int i = 0; i < count; i++) {
             System.out.print("  Seat ID [" + (i + 1) + "]: ");
+            // put validation method
             String seatId = scanner.nextLine().trim().toUpperCase();
 
+            // make this into a list
             System.out.println("  Attendee types: ADULT, CHILD, STUDENT, SENIOR");
             System.out.print("  Attendee type: ");
             AttendeeType type;
