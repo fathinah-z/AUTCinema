@@ -38,23 +38,19 @@ public class CLIController {
             System.out.println("\nMain Menu:");
             System.out.println("  1. Browse Movies");
             System.out.println("  2. Cancel a Booking");
-            System.out.println("  0. Exit");
+            System.out.println("  3. Exit");
             System.out.print("Choose an option: ");
 
             String choice = scanner.nextLine().trim();
             switch (choice) {
-                case "1":
-                    browse();
-                    break;
-                case "2":
-                    cancelBooking();
-                    break;
-                case "0":
+                case "1": browse(); break;
+                case "2": cancelBooking(); break;
+                case "3":
                     System.out.println("Thank you for using AUT Cinema. Goodbye!");
                     running = false;
                     break;
                 default:
-                    System.out.println("Invalid option. Please 1, 2, or 0.");
+                    System.out.println("Invalid option. Please 1, 2, or 3.");
             }
         }
     }
