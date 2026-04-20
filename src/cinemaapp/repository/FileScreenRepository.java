@@ -18,20 +18,6 @@ public class FileScreenRepository implements ScreenRepository {
         load();
     }
 
-    private void load() {
-        try (BufferedReader br = new BufferedReader(new FileReader(filepath))) {
-            String line;
-
-            while ((line = br.readLine()) != null) {
-                Screen screen = parseScreen(line);
-                screens.add(screen);
-            }
-
-        } catch (IOException e) {
-            throw new RuntimeException("Failed to read movies file", e);
-        }
-    }
-
     private Screen buildScreen(String screenId, char firstRow, char lastRow, int seatsPerRow) {
         List<Seat> seats = new ArrayList<>();
         int middle = seatsPerRow / 2;
@@ -63,5 +49,19 @@ public class FileScreenRepository implements ScreenRepository {
         int seatsPerRow = Integer.parseInt(parts[3]);
 
         return buildScreen(screenId, firstRow, lastRow, seatsPerRow);
+    }
+    
+    private void load() {
+        try (BufferedReader br = new BufferedReader(new FileReader(filepath))) {
+            String line;
+
+            while ((line = br.readLine()) != null) {
+                Screen screen = parseScreen(line);
+                screens.add(screen);
+            }
+
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to read movies file", e);
+        }
     }
 }

@@ -17,20 +17,6 @@ public class FileMovieRepository implements MovieRepository {
         load();
     }
 
-    private void load() {
-        try (BufferedReader br = new BufferedReader(new FileReader(filepath))) {
-            String line;
-
-            while ((line = br.readLine()) != null) {
-                Movie movie = parseMovie(line);
-                movies.add(movie);
-            }
-
-        } catch (IOException e) {
-            throw new RuntimeException("Failed to read movies file", e);
-        }
-    }
-
     @Override
     public List<Movie> findAll() {
         return new ArrayList<>(movies);
@@ -54,5 +40,19 @@ public class FileMovieRepository implements MovieRepository {
         int runtime = Integer.parseInt(parts[4]);
 
         return new Movie(movieId, title, rating, description, runtime);
+    }
+    
+    private void load() {
+        try (BufferedReader br = new BufferedReader(new FileReader(filepath))) {
+            String line;
+
+            while ((line = br.readLine()) != null) {
+                Movie movie = parseMovie(line);
+                movies.add(movie);
+            }
+
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to read movies file", e);
+        }
     }
 }

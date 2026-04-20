@@ -1,6 +1,10 @@
 package cinemaapp.repository;
 
+import cinemaapp.model.ShowSeat;
 import cinemaapp.model.SeatStatus;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -8,25 +12,10 @@ public class FileShowSeatRepository implements ShowSeatRepository {
 
     // Key: "showtimeId:seatId" -> SeatStatus
     private final Map<String, SeatStatus> seatStatusMap = new HashMap<>();
+    private final String filepath = "src/showseats.txt";
 
     public FileShowSeatRepository() {
-        // Seed initial seat statuses for showtimes
-        String[] showtimeIds = {"ST001", "ST002", "ST003", "ST004", "ST005"};
-        char[] rows = {'A', 'B', 'C', 'D', 'E'};
-        int seatsPerRow = 8;
-
-        for (String stId : showtimeIds) {
-            for (char row : rows) {
-                for (int i = 1; i <= seatsPerRow; i++) {
-                    String seatId = row + String.format("%02d", i);
-                    seatStatusMap.put(stId + ":" + seatId, SeatStatus.AVAILABLE);
-                }
-            }
-        }
-        // Mark a few seats as booked for realism
-        seatStatusMap.put("ST001:A01", SeatStatus.BOOKED);
-        seatStatusMap.put("ST001:A02", SeatStatus.BOOKED);
-        seatStatusMap.put("ST002:B03", SeatStatus.RESERVED);
+        load();
     }
 
     @Override
@@ -46,5 +35,30 @@ public class FileShowSeatRepository implements ShowSeatRepository {
     public void updateSeatStatus(String showtimeId, String seatId, SeatStatus status) {
         String key = showtimeId + ":" + seatId;
         seatStatusMap.put(key, status);
+    }
+
+    private ShowSeat parseShowSeat(String line) {
+        String[] parts = line.split("\\|");
+
+        String showtimeId = parts[0];
+        String seatId = parts[1];
+        SeatStatus status = SeatStatus.valueOf(parts[2]);
+
+        return new ShowSeat(showtimeId, seatId, status);
+    }
+
+    private void load() {
+        try (BufferedReader br = new BufferedReader(new FileReader(filepath))) {
+            String line;
+
+            while ((line = br.readLine()) != null) {
+                ShowSeat ss = parseShowSeat(line);
+                String key = ss.getShowtimeId() + ":" + ss.getSeatId();
+                seatStatusMap.put(key, ss.getSeatStatus());
+            }
+
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to load showseats file", e);
+        }
     }
 }

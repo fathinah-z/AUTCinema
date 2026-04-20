@@ -18,20 +18,6 @@ public class FileShowtimeRepository implements ShowtimeRepository {
         load();
     }
 
-    private void load() {
-        try (BufferedReader br = new BufferedReader(new FileReader(filepath))) {
-            String line;
-
-            while ((line = br.readLine()) != null) {
-                Showtime showtime = parseShowtime(line);
-                showtimes.add(showtime);
-            }
-
-        } catch (IOException e) {
-            throw new RuntimeException("Failed to read movies file", e);
-        }
-    }
-
     @Override
     public Showtime findById(String showtimeId) {
         return showtimes.stream()
@@ -63,4 +49,17 @@ public class FileShowtimeRepository implements ShowtimeRepository {
         return new Showtime(showtimeId, movieId, screenId, dateTime, basePrice);
     }
 
+    private void load() {
+        try (BufferedReader br = new BufferedReader(new FileReader(filepath))) {
+            String line;
+
+            while ((line = br.readLine()) != null) {
+                Showtime showtime = parseShowtime(line);
+                showtimes.add(showtime);
+            }
+
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to read movies file", e);
+        }
+    }
 }

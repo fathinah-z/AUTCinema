@@ -6,23 +6,23 @@ import cinemaapp.util.BookingCodeGenerator;
 
 public class CinemaApp {
 
-    private CLIController cliControl;
+    private final CLIController cliControl;
 
     public CinemaApp() {
         // --- Repositories (File-based implementations) ---
-        MovieRepository movieRepo           = new FileMovieRepository();
-        ShowtimeRepository showtimeRepo     = new FileShowtimeRepository();
-        ShowSeatRepository showSeatRepo     = new FileShowSeatRepository();
-        BookingRepository bookingRepo       = new FileBookingRepository();
-        ScreenRepository screenRepo         = new FileScreenRepository();
+        MovieRepository movieRepo = new FileMovieRepository();
+        ShowtimeRepository showtimeRepo = new FileShowtimeRepository();
+        ShowSeatRepository showSeatRepo = new FileShowSeatRepository();
+        BookingRepository bookingRepo = new FileBookingRepository();
+        ScreenRepository screenRepo = new FileScreenRepository();
 
         // --- Utilities ---
-        BookingCodeGenerator codeGenerator  = new BookingCodeGenerator();
+        BookingCodeGenerator codeGenerator = new BookingCodeGenerator();
 
         // --- Services ---
-        PricingService pricingService       = new PricingService();
+        PricingService pricingService = new PricingService();
 
-        BrowsingService browsingService     = new BrowsingService(
+        BrowsingService browsingService = new BrowsingService(
                 movieRepo, showtimeRepo, showSeatRepo);
 
         MakeBookingService makeBookingService = new MakeBookingService(
