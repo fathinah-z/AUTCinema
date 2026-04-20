@@ -9,6 +9,7 @@ import cinemaapp.service.*;
 import cinemaapp.util.BookingCodeGenerator;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 public class CLIController {
@@ -83,9 +84,8 @@ public class CLIController {
         System.out.println("Synopsis: " + details.getMovie().getDescription());
         System.out.println("\nAvailable Showtimes:");
         for (ShowInfo si : details.getShowtimes()) {
-            System.out.printf("  [%s] %s  |  Available Seats: %d  |  Base Price: $%.2f%n",
-                    si.getShowtime().getShowtimeId(),
-                    si.getShowtime().getDateTime(),
+            System.out.printf("  %s  |  Available Seats: %d  |  Base Price: $%.2f%n",
+                    si.getShowtime().getDateTime().format(DateTimeFormatter.ofPattern("dd MMM yyyy, h:mm a")),
                     si.getAvailSeats(),
                     si.getShowtime().getBasePrice());
         }
