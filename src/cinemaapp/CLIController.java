@@ -21,8 +21,8 @@ public class CLIController {
     private final Scanner scanner = new Scanner(System.in);
 
     public CLIController(BrowsingService browsingService,
-                         MakeBookingService makeBookingService,
-                         CancelBookingService cancelBookingService) {
+            MakeBookingService makeBookingService,
+            CancelBookingService cancelBookingService) {
         this.browsingService = browsingService;
         this.makeBookingService = makeBookingService;
         this.cancelBookingService = cancelBookingService;
@@ -43,8 +43,12 @@ public class CLIController {
 
             String choice = scanner.nextLine().trim();
             switch (choice) {
-                case "1": browse(); break;
-                case "2": cancelBooking(); break;
+                case "1":
+                    browse();
+                    break;
+                case "2":
+                    cancelBooking();
+                    break;
                 case "0":
                     System.out.println("Thank you for using AUT Cinema. Goodbye!");
                     running = false;
@@ -69,7 +73,9 @@ public class CLIController {
 
         System.out.print("\nEnter movie number for details (or 0 to go back): ");
         int idx = parseIntSafe(scanner.nextLine().trim()) - 1;
-        if (idx < 0 || idx >= movies.size()) return;
+        if (idx < 0 || idx >= movies.size()) {
+            return;
+        }
 
         Movie selected = movies.get(idx);
         MovieDetails details = browsingService.getMovieDetails(selected.getMovieId());
@@ -81,10 +87,14 @@ public class CLIController {
         System.out.println("\n--- " + details.getMovie().getTitle() + " ---");
         System.out.println("Rating  : " + details.getMovie().getRating());
         System.out.println("Runtime : " + details.getMovie().getRuntime() + " min");
-        System.out.println("Synopsis: " + details.getMovie().getDescription());
+        System.out.println("Synopsis: " + wrap(details.getMovie().getDescription(), 80));
         System.out.println("\nAvailable Showtimes:");
-        for (ShowInfo si : details.getShowtimes()) {
-            System.out.printf("  %s  |  Available Seats: %d  |  Base Price: $%.2f%n",
+
+        for (int i = 0; i < details.getShowtimes().size(); i++) {
+            ShowInfo si = details.getShowtimes().get(i);
+
+            System.out.printf("  %d. %s  |  Available Seats: %d  |  Base Price: $%.2f%n",
+                    i + 1,
                     si.getShowtime().getDateTime().format(DateTimeFormatter.ofPattern("dd MMM yyyy, h:mm a")),
                     si.getAvailSeats(),
                     si.getShowtime().getBasePrice());
@@ -157,7 +167,26 @@ public class CLIController {
     }
 
     private int parseIntSafe(String s) {
-        try { return Integer.parseInt(s); }
-        catch (NumberFormatException e) { return 0; }
+        try {
+            return Integer.parseInt(s);
+        } catch (NumberFormatException e) {
+            return 0;
+        }
+    }
+
+    public static String wrap(String text, int width) {
+        StringBuilder sb = new StringBuilder();
+        int lineLength = 0;
+
+        for (String word : text.split(" ")) {
+            if (lineLength + word.length() > width) {
+                sb.append("\n");
+                lineLength = 0;
+            }
+            sb.append(word).append(" ");
+            lineLength += word.length() + 1;
+        }
+
+        return sb.toString();
     }
 }
