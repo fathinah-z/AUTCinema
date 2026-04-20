@@ -12,8 +12,12 @@ public class FileMovieRepository implements MovieRepository {
 
     private final List<Movie> movies = new ArrayList<>();
     private final String filepath = "src/movies.txt";
-
+    
     public FileMovieRepository() {
+        load();
+    }
+
+    private void load() {
         try (BufferedReader br = new BufferedReader(new FileReader(filepath))) {
             String line;
 

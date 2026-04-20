@@ -13,8 +13,12 @@ public class FileShowtimeRepository implements ShowtimeRepository {
 
     private final List<Showtime> showtimes = new ArrayList<>();
     private final String filepath = "src/showtimes.txt";
-
+    
     public FileShowtimeRepository() {
+        load();
+    }
+
+    private void load() {
         try (BufferedReader br = new BufferedReader(new FileReader(filepath))) {
             String line;
 
