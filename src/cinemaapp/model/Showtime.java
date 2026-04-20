@@ -9,11 +9,11 @@ public class Showtime {
     private String screenId;
     private double basePrice;
 
-    public Showtime(String showtimeId, LocalDateTime dateTime, String movieId, String screenId, double basePrice) {
+    public Showtime(String showtimeId, String movieId, String screenId, LocalDateTime dateTime, double basePrice) {
         this.showtimeId = showtimeId;
-        this.dateTime = dateTime;
         this.movieId = movieId;
         this.screenId = screenId;
+        this.dateTime = dateTime;
         this.basePrice = basePrice;
     }
 
