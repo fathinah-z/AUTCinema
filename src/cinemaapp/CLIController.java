@@ -29,29 +29,27 @@ public class CLIController {
 
     public void start() {
         System.out.println("===========================================");
-        System.out.println("       Welcome to AUT Cinema Booking  dd     ");
+        System.out.println("       Welcome to AUT Cinema Booking       ");
         System.out.println("===========================================");
 
         boolean running = true;
         while (running) {
             System.out.println("\nMain Menu:");
             System.out.println("  1. Browse Movies");
-            System.out.println("  2. Make a Booking");
-            System.out.println("  3. Cancel a Booking");
-            System.out.println("  4. Exit");
+            System.out.println("  2. Cancel a Booking");
+            System.out.println("  0. Exit");
             System.out.print("Choose an option: ");
 
             String choice = scanner.nextLine().trim();
             switch (choice) {
                 case "1": browse(); break;
-                case "2": makeBooking(); break;
-                case "3": cancelBooking(); break;
-                case "4":
+                case "2": cancelBooking(); break;
+                case "0":
                     System.out.println("Thank you for using AUT Cinema. Goodbye!");
                     running = false;
                     break;
                 default:
-                    System.out.println("Invalid option. Please try again.");
+                    System.out.println("Invalid option. Please 1, 2, or 0.");
             }
         }
     }
