@@ -54,6 +54,7 @@ public class FileShowtimeRepository implements ShowtimeRepository {
             String line;
 
             while ((line = br.readLine()) != null) {
+                if (line.isBlank()) continue;
                 Showtime showtime = parseShowtime(line);
                 showtimes.add(showtime);
             }

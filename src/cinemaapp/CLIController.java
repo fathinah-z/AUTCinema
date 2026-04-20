@@ -36,15 +36,19 @@ public class CLIController {
         boolean running = true;
         while (running) {
             System.out.println("\nMain Menu:");
-            System.out.println("  1. Browse Movies");
+            System.out.println("  1. Browse & Book");
             System.out.println("  2. Cancel a Booking");
             System.out.println("  3. Exit");
             System.out.print("Choose an option: ");
 
             String choice = scanner.nextLine().trim();
             switch (choice) {
-                case "1": browse(); break;
-                case "2": cancelBooking(); break;
+                case "1":
+                    browse();
+                    break;
+                case "2":
+                    cancelBooking();
+                    break;
                 case "3":
                     System.out.println("Thank you for using AUT Cinema. Goodbye!");
                     running = false;
@@ -67,6 +71,7 @@ public class CLIController {
             System.out.printf("  %d. %s%n", i + 1, movies.get(i));
         }
 
+        // make invalid
         System.out.print("\nEnter movie number for details (or 0 to go back): ");
         int idx = parseIntSafe(scanner.nextLine().trim()) - 1;
         if (idx < 0 || idx >= movies.size()) {
@@ -85,6 +90,8 @@ public class CLIController {
         System.out.println("Runtime : " + details.getMovie().getRuntime() + " min");
         System.out.println("Synopsis: " + wrap(details.getMovie().getDescription(), 80));
         System.out.println("\nAvailable Showtimes:");
+       
+        List<ShowInfo> shows = details.getShowtimes();
 
         for (int i = 0; i < details.getShowtimes().size(); i++) {
             ShowInfo si = details.getShowtimes().get(i);
@@ -95,14 +102,29 @@ public class CLIController {
                     si.getAvailSeats(),
                     si.getShowtime().getBasePrice());
         }
+
+        // make invalid and merge booking and select into one
+        System.out.print("\nSelect showtime (or 0 to go back): ");
+        int showIdx = parseIntSafe(scanner.nextLine()) - 1;
+        if (showIdx < 0 || showIdx >= shows.size()) {
+            return;
+        }
+
+        ShowInfo selectedShow = shows.get(showIdx);
+        String showtimeId = selectedShow.getShowtime().getShowtimeId();
+        double basePrice = selectedShow.getShowtime().getBasePrice();
+
+        System.out.print("Do you want to book a seat? (y/n): ");
+        if ("y".equalsIgnoreCase(scanner.nextLine())) {
+            makeBooking(showtimeId, basePrice);
+        }
+
     }
 
-    public void makeBooking() {
-        System.out.print("\nEnter Showtime ID: ");
-        String showtimeId = scanner.nextLine().trim();
+    public void makeBooking(String showtimeId, double basePrice) {
 
-        // Optional filters
         List<SeatFilter> filters = new ArrayList<>();
+
         System.out.print("Filter: aisle seats only? (y/n): ");
         if ("y".equalsIgnoreCase(scanner.nextLine().trim())) {
             filters.add(new AisleFilter(true));
@@ -112,42 +134,82 @@ public class CLIController {
             filters.add(new AccessibleFilter(true));
         }
 
-        List<Seat> availSeats = makeBookingService.getAvailSeats(showtimeId, filters);
-        if (availSeats.isEmpty()) {
-            System.out.println("No available seats matching your filters.");
-            return;
-        }
+        // add row filter
+        Map<String, AttendeeType> cart = new LinkedHashMap<>();
+        boolean bookingSeats = true;
 
-        System.out.println("\nAvailable Seats:");
-        for (Seat seat : availSeats) {
-            System.out.printf("  %s  Row:%c  Aisle:%b  Accessible:%b%n",
-                    seat.getSeatId(), seat.getRow(), seat.isNearAisle(), seat.isAccessible());
-        }
+        while (bookingSeats) {
 
-        // put book another seat? after each seat booked
-        Map<String, AttendeeType> seatAttendeeMap = new LinkedHashMap<>();
-        System.out.print("\nHow many seats to book? ");
-        int count = parseIntSafe(scanner.nextLine().trim());
+            List<Seat> availSeats = makeBookingService.getAvailSeats(showtimeId, filters);
 
-        for (int i = 0; i < count; i++) {
-            System.out.print("  Seat ID [" + (i + 1) + "]: ");
-            // put validation method
+            if (availSeats.isEmpty()) {
+                System.out.println("No seats available.");
+                return;
+            }
+
+            System.out.println("\nAvailable Seats:");
+            for (Seat seat : availSeats) {
+                System.out.printf("  %s Row:%c Aisle:%b Accessible:%b%n",
+                        seat.getSeatId(), seat.getRow(),
+                        seat.isNearAisle(), seat.isAccessible());
+            }
+
+            // make invalid
+            System.out.print("\nEnter Seat ID: ");
             String seatId = scanner.nextLine().trim().toUpperCase();
 
-            // make this into a list
-            System.out.println("  Attendee types: ADULT, CHILD, STUDENT, SENIOR");
-            System.out.print("  Attendee type: ");
-            AttendeeType type;
-            try {
-                type = AttendeeType.valueOf(scanner.nextLine().trim().toUpperCase());
-            } catch (IllegalArgumentException e) {
-                System.out.println("  Invalid attendee type. Defaulting to ADULT.");
-                type = AttendeeType.ADULT;
+            AttendeeType type = null;
+
+            // make list
+            while (type == null) {
+                System.out.print("Attendee type (ADULT/CHILD/STUDENT/SENIOR): ");
+                String input = scanner.nextLine().trim().toUpperCase();
+
+                try {
+                    type = AttendeeType.valueOf(input);
+                } catch (IllegalArgumentException e) {
+                    System.out.println("Invalid type. Please enter: ADULT, CHILD, STUDENT, or SENIOR.");
+                }
             }
-            seatAttendeeMap.put(seatId, type);
+
+            cart.put(seatId, type);
+
+            // make invalid
+            System.out.print("Book another seat? (y/n): ");
+            bookingSeats = "y".equalsIgnoreCase(scanner.nextLine());
         }
 
-        makeBookingService.makeBooking(showtimeId, seatAttendeeMap);
+        while (true) {
+            double total = 0.0;
+            for (AttendeeType type : cart.values()) {
+                total += basePrice * type.getPriceModifier();
+            }
+
+            System.out.printf("\nTotal cost: $%.2f%n", total);
+            
+            // make invalid
+            System.out.println("Processing to payment...");
+            System.out.print("Have you made the payment? (y/n): ");
+            
+            if ("y".equalsIgnoreCase(scanner.nextLine())) {
+                makeBookingService.makeBooking(showtimeId, cart);
+                System.out.println("Booking confirmed!");
+                return;
+            }
+            
+            //make invalid
+            System.out.print("Would you like to try again? (y/n): ");
+            if ("y".equalsIgnoreCase(scanner.nextLine())) {
+                continue;
+            }
+
+            //makeinvalid
+            System.out.print("Cancel booking? (y/n): ");
+            if ("y".equalsIgnoreCase(scanner.nextLine())) {
+                System.out.println("Booking cancelled. Returning to main menu.");
+                return;
+            }
+        }
     }
 
     public void cancelBooking() {

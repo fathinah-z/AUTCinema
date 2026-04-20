@@ -82,14 +82,14 @@ public class MakeBookingService {
         }
 
         // Build booking
-        String bookingCode = codeGenerator.generateBookingCode();
-        Booking booking = new Booking(bookingCode);
+        String bookingCode = codeGenerator.generateUniqueCode(bookingRepo);
+        Booking booking = new Booking(bookingCode, showtimeId);
 
         for (Map.Entry<String, AttendeeType> entry : seatAttendeeMap.entrySet()) {
             String seatId = entry.getKey();
             AttendeeType attendeeType = entry.getValue();
             double itemPrice = pricingService.calculateItemPrice(attendeeType, showtime.getBasePrice());
-            booking.addBookingItem(new BookingItem(showtimeId, seatId, attendeeType, itemPrice));
+            booking.addBookingItem(new BookingItem(seatId, attendeeType, itemPrice));
             showSeatRepo.updateSeatStatus(showtimeId, seatId, SeatStatus.BOOKED);
         }
 

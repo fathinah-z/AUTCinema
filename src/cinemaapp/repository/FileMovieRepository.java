@@ -47,6 +47,7 @@ public class FileMovieRepository implements MovieRepository {
             String line;
 
             while ((line = br.readLine()) != null) {
+                if (line.isBlank()) continue;
                 Movie movie = parseMovie(line);
                 movies.add(movie);
             }

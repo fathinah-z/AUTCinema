@@ -9,11 +9,14 @@ public class CancelBookingService {
 
     private final BookingRepository bookingRepo;
     private final ShowSeatRepository showSeatRepo;
+    private final ShowtimeRepository showtimeRepo;
 
     public CancelBookingService(BookingRepository bookingRepo,
-                                ShowSeatRepository showSeatRepo) {
+                                ShowSeatRepository showSeatRepo,
+                                ShowtimeRepository showtimeRepo) {
         this.bookingRepo = bookingRepo;
         this.showSeatRepo = showSeatRepo;
+        this.showtimeRepo = showtimeRepo;
     }
 
     public boolean cancelBooking(Booking booking) {
@@ -21,7 +24,7 @@ public class CancelBookingService {
 
         // Release all seats back to AVAILABLE
         for (BookingItem item : booking.getBookingItems()) {
-            showSeatRepo.updateSeatStatus(item.getShowtimeId(), item.getSeatId(), SeatStatus.AVAILABLE);
+            showSeatRepo.updateSeatStatus(booking.getShowtimeId(), item.getSeatId(), SeatStatus.AVAILABLE);
         }
 
         bookingRepo.deleteBooking(booking);
@@ -29,15 +32,15 @@ public class CancelBookingService {
         return true;
     }
 
-    /**
-     * Refunds are eligible if cancellation happens at least 5 days before show time.
-     * Requires the showtime's dateTime for comparison.
-     */
     public boolean isRefundEligible(Booking booking, LocalDateTime now) {
         if (booking == null) return false;
-        // A booking is refund-eligible if it was made more than 2 hours ago is NOT
-        // the criterion — the show must be more than 2 hours away.
-        // This simplified version checks booking date as a placeholder.
-        return booking.getBookingDate().plusDays(5).isAfter(now);
+
+        Showtime showtime = showtimeRepo.findById(booking.getShowtimeId());
+        if (showtime == null) return false;
+
+        LocalDateTime showtimeDateTime = showtime.getDateTime();
+
+        // Refund is eligible if showtime is more than 5 days away
+        return now.plusDays(5).isBefore(showtimeDateTime);
     }
 }

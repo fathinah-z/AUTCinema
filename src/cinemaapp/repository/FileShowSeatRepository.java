@@ -52,6 +52,7 @@ public class FileShowSeatRepository implements ShowSeatRepository {
             String line;
 
             while ((line = br.readLine()) != null) {
+                if (line.isBlank()) continue;
                 ShowSeat ss = parseShowSeat(line);
                 String key = ss.getShowtimeId() + ":" + ss.getSeatId();
                 seatStatusMap.put(key, ss.getSeatStatus());

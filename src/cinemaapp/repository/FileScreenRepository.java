@@ -56,6 +56,7 @@ public class FileScreenRepository implements ScreenRepository {
             String line;
 
             while ((line = br.readLine()) != null) {
+                if (line.isBlank()) continue;
                 Screen screen = parseScreen(line);
                 screens.add(screen);
             }

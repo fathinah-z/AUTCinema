@@ -30,7 +30,7 @@ public class CinemaApp {
                 codeGenerator, pricingService);
 
         CancelBookingService cancelBookingService = new CancelBookingService(
-                bookingRepo, showSeatRepo);
+                bookingRepo, showSeatRepo, showtimeRepo);
 
         // --- Controller ---
         this.cliControl = new CLIController(
