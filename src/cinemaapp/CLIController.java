@@ -29,7 +29,7 @@ public class CLIController {
 
     public void start() {
         System.out.println("===========================================");
-        System.out.println("       Welcome to AUT Cinema Booking 321      ");
+        System.out.println("       Welcome to AUT Cinema Booking      ");
         System.out.println("===========================================");
 
         boolean running = true;
