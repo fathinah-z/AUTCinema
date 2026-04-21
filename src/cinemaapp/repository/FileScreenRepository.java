@@ -1,6 +1,5 @@
 package cinemaapp.repository;
 
-import cinemaapp.model.Movie;
 import cinemaapp.model.Screen;
 import cinemaapp.model.Seat;
 import java.io.BufferedReader;

@@ -4,11 +4,8 @@ import cinemaapp.dto.MovieDetails;
 import cinemaapp.dto.ShowInfo;
 import cinemaapp.filter.*;
 import cinemaapp.model.*;
-import cinemaapp.repository.*;
 import cinemaapp.service.*;
-import cinemaapp.util.BookingCodeGenerator;
 
-import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 

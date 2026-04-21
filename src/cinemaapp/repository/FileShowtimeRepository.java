@@ -1,6 +1,5 @@
 package cinemaapp.repository;
 
-import cinemaapp.model.Movie;
 import cinemaapp.model.Showtime;
 import java.io.BufferedReader;
 import java.io.FileReader;
