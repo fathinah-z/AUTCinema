@@ -34,10 +34,48 @@ public class FileShowSeatRepository implements ShowSeatRepository {
     }
 
     @Override
+    public void resetAllReservedSeats() {
+        for (Map.Entry<String, SeatStatus> entry : showSeats.entrySet()) {
+            if (entry.getValue() == SeatStatus.RESERVED) {
+                entry.setValue(SeatStatus.AVAILABLE);
+            }
+        }
+        saveToFile();
+    }
+
+    @Override
     public void updateSeatStatus(String showtimeId, String seatId, SeatStatus status) {
         String key = showtimeId + ":" + seatId;
         showSeats.put(key, status);
         saveToFile();
+    }
+
+    @Override
+    public synchronized boolean tryReserveSeat(String showtimeId, String seatId) {
+        Map<String, SeatStatus> map = findByShowtimeId(showtimeId);
+        SeatStatus current = map.get(seatId);
+
+        if (current == SeatStatus.AVAILABLE) {
+            map.put(seatId, SeatStatus.RESERVED);
+            saveToFile();
+            return true;
+        }
+
+        return false;
+    }
+
+    @Override
+    public synchronized boolean tryBookSeat(String showtimeId, String seatId) {
+        Map<String, SeatStatus> map = findByShowtimeId(showtimeId);
+        SeatStatus current = map.get(seatId);
+
+        if (current == SeatStatus.RESERVED) {
+            map.put(seatId, SeatStatus.BOOKED);
+            saveToFile();
+            return true;
+        }
+
+        return false;
     }
 
     private ShowSeat parseShowSeat(String line) {
@@ -49,7 +87,7 @@ public class FileShowSeatRepository implements ShowSeatRepository {
 
         return new ShowSeat(showtimeId, seatId, status);
     }
-    
+
     private void load() {
         try (BufferedReader br = new BufferedReader(new FileReader(filepath))) {
             String line;
@@ -85,4 +123,5 @@ public class FileShowSeatRepository implements ShowSeatRepository {
             throw new RuntimeException("Failed to save showseats file", e);
         }
     }
+
 }

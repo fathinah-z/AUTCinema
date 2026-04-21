@@ -6,7 +6,6 @@ import cinemaapp.model.*;
 import cinemaapp.repository.*;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -26,6 +25,10 @@ public class BrowsingService {
 
     public List<Movie> getMovies() {
         return movieRepo.findAll();
+    }
+    
+    public Movie getMovieById(String movieId){
+        return movieRepo.findById(movieId);
     }
 
     public MovieDetails getMovieDetails(String movieId) {

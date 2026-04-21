@@ -1,6 +1,7 @@
 package cinemaapp.model;
 
 public class Movie {
+
     private String movieId;
     private String title;
     private MovieRating rating;
@@ -15,20 +16,45 @@ public class Movie {
         this.runtime = runtime;
     }
 
-    public String getMovieId() { return movieId; }
-    public void setMovieId(String movieId) { this.movieId = movieId; }
+    public String getMovieId() {
+        return movieId;
+    }
 
-    public String getTitle() { return title; }
-    public void setTitle(String title) { this.title = title; }
+    public void setMovieId(String movieId) {
+        this.movieId = movieId;
+    }
 
-    public MovieRating getRating() { return rating; }
-    public void setRating(MovieRating rating) { this.rating = rating; }
+    public String getTitle() {
+        return title;
+    }
 
-    public String getDescription() { return description; }
-    public void setDescription(String description) { this.description = description; }
+    public void setTitle(String title) {
+        this.title = title;
+    }
 
-    public int getRuntime() { return runtime; }
-    public void setRuntime(int runtime) { this.runtime = runtime; }
+    public MovieRating getRating() {
+        return rating;
+    }
+
+    public void setRating(MovieRating rating) {
+        this.rating = rating;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public int getRuntime() {
+        return runtime;
+    }
+
+    public void setRuntime(int runtime) {
+        this.runtime = runtime;
+    }
 
     @Override
     public String toString() {

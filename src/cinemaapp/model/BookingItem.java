@@ -1,6 +1,7 @@
 package cinemaapp.model;
 
 public class BookingItem {
+
     private String seatId;
     private AttendeeType attendeeType;
     private double itemPrice;
@@ -11,14 +12,29 @@ public class BookingItem {
         this.itemPrice = itemPrice;
     }
 
-    public String getSeatId() { return seatId; }
-    public void setSeatId(String seatId) { this.seatId = seatId; }
+    public String getSeatId() {
+        return seatId;
+    }
 
-    public AttendeeType getAttendeeType() { return attendeeType; }
-    public void setAttendeeType(AttendeeType attendeeType) { this.attendeeType = attendeeType; }
+    public void setSeatId(String seatId) {
+        this.seatId = seatId;
+    }
 
-    public double getItemPrice() { return itemPrice; }
-    public void setItemPrice(double itemPrice) { this.itemPrice = itemPrice; }
+    public AttendeeType getAttendeeType() {
+        return attendeeType;
+    }
+
+    public void setAttendeeType(AttendeeType attendeeType) {
+        this.attendeeType = attendeeType;
+    }
+
+    public double getItemPrice() {
+        return itemPrice;
+    }
+
+    public void setItemPrice(double itemPrice) {
+        this.itemPrice = itemPrice;
+    }
 
     @Override
     public String toString() {

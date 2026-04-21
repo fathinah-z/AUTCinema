@@ -33,20 +33,45 @@ public class Booking {
                 .sum();
     }
 
-    public String getBookingCode() { return bookingCode; }
-    public void setBookingCode(String bookingCode) { this.bookingCode = bookingCode; }
-    
-    public String getShowtimeId() {return showtimeId;}
-    public void setShowtimeId(String showtimeId) {this.showtimeId = showtimeId;}
+    public String getBookingCode() {
+        return bookingCode;
+    }
 
-    public List<BookingItem> getBookingItems() { return bookingItems; }
-    public void setBookingItems(List<BookingItem> bookingItems) { this.bookingItems = bookingItems; }
+    public void setBookingCode(String bookingCode) {
+        this.bookingCode = bookingCode;
+    }
 
-    public LocalDateTime getBookingDate() { return bookingDate; }
-    public void setBookingDate(LocalDateTime bookingDate) { this.bookingDate = bookingDate; }
+    public String getShowtimeId() {
+        return showtimeId;
+    }
 
-    public double getTotalPrice() { return totalPrice; }
-    public void setTotalPrice(double totalPrice) { this.totalPrice = totalPrice; }
+    public void setShowtimeId(String showtimeId) {
+        this.showtimeId = showtimeId;
+    }
+
+    public List<BookingItem> getBookingItems() {
+        return bookingItems;
+    }
+
+    public void setBookingItems(List<BookingItem> bookingItems) {
+        this.bookingItems = bookingItems;
+    }
+
+    public LocalDateTime getBookingDate() {
+        return bookingDate;
+    }
+
+    public void setBookingDate(LocalDateTime bookingDate) {
+        this.bookingDate = bookingDate;
+    }
+
+    public double getTotalPrice() {
+        return totalPrice;
+    }
+
+    public void setTotalPrice(double totalPrice) {
+        this.totalPrice = totalPrice;
+    }
 
     @Override
     public String toString() {

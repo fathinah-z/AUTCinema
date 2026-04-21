@@ -18,7 +18,15 @@ public class CancelBookingService {
         this.showSeatRepo = showSeatRepo;
         this.showtimeRepo = showtimeRepo;
     }
+    
+    public Booking findBookingByCode(String code) {
+        return bookingRepo.findByBookingCode(code);
+    }
 
+    public Showtime getShowtimeById(String showtimeId) {
+        return showtimeRepo.findById(showtimeId);
+    }
+    
     public boolean cancelBooking(Booking booking) {
         if (booking == null) return false;
 
@@ -28,7 +36,6 @@ public class CancelBookingService {
         }
 
         bookingRepo.deleteBooking(booking);
-        System.out.println("Booking " + booking.getBookingCode() + " has been cancelled.");
         return true;
     }
 

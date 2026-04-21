@@ -32,12 +32,12 @@ public class FileScreenRepository implements ScreenRepository {
         for (char row = firstRow; row <= lastRow; row++) {
             for (int i = 1; i <= seatsPerRow; i++) {
                 String seatId = row + String.format("%02d", i);
-                boolean nearAisle = (i == 1 || i == seatsPerRow);
-                boolean accessible = (row == lastRow && (i == 1 || i == 2 || i == middle || i == middle + 1));
-                seats.add(new Seat(seatId, row, nearAisle, accessible));
+                boolean nearAisle = (i == 1 || i == middle || i == middle + 1 || i == seatsPerRow );
+                boolean accessible = (row == lastRow && (i == middle - 1 || i == middle || i == middle + 1 || i == middle + 2));
+                seats.add(new Seat(seatId, row, i, nearAisle, accessible));
             }
         }
-        return new Screen(screenId, seats);
+        return new Screen(screenId, firstRow, lastRow, seatsPerRow, seats);
     }
 
     private Screen parseScreen(String line) {
