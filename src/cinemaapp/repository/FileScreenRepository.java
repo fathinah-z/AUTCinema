@@ -13,9 +13,17 @@ public class FileScreenRepository implements ScreenRepository {
 
     private final List<Screen> screens = new ArrayList<>();
     private final String filepath = "src/screens.txt";
-    
+
     public FileScreenRepository() {
         load();
+    }
+
+    @Override
+    public Screen findById(String screenId) {
+        return screens.stream()
+                .filter(s -> s.getScreenId().equals(screenId))
+                .findFirst()
+                .orElse(null);
     }
 
     private Screen buildScreen(String screenId, char firstRow, char lastRow, int seatsPerRow) {
@@ -25,19 +33,11 @@ public class FileScreenRepository implements ScreenRepository {
             for (int i = 1; i <= seatsPerRow; i++) {
                 String seatId = row + String.format("%02d", i);
                 boolean nearAisle = (i == 1 || i == seatsPerRow);
-                boolean accessible = (row == lastRow && (i == 1 || i == 2 || i == middle || i == middle+1));
+                boolean accessible = (row == lastRow && (i == 1 || i == 2 || i == middle || i == middle + 1));
                 seats.add(new Seat(seatId, row, nearAisle, accessible));
             }
         }
         return new Screen(screenId, seats);
-    }
-
-    @Override
-    public Screen findById(String screenId) {
-        return screens.stream()
-                .filter(s -> s.getScreenId().equals(screenId))
-                .findFirst()
-                .orElse(null);
     }
 
     private Screen parseScreen(String line) {
@@ -50,13 +50,15 @@ public class FileScreenRepository implements ScreenRepository {
 
         return buildScreen(screenId, firstRow, lastRow, seatsPerRow);
     }
-    
+
     private void load() {
         try (BufferedReader br = new BufferedReader(new FileReader(filepath))) {
             String line;
 
             while ((line = br.readLine()) != null) {
-                if (line.isBlank()) continue;
+                if (line.isBlank()) {
+                    continue;
+                }
                 Screen screen = parseScreen(line);
                 screens.add(screen);
             }

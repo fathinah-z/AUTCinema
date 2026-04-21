@@ -1,9 +1,9 @@
 package cinemaapp.repository;
 
 import cinemaapp.model.SeatStatus;
-import java.util.HashMap;
+import java.util.Map;
 
 public interface ShowSeatRepository {
-    HashMap<String, SeatStatus> findByShowtimeId(String showtimeId);
+    Map<String, SeatStatus> findByShowtimeId(String showtimeId);
     void updateSeatStatus(String showtimeId, String seatId, SeatStatus status);
 }

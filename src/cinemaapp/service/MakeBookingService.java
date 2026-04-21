@@ -40,7 +40,7 @@ public class MakeBookingService {
         Screen screen = screenRepo.findById(showtime.getScreenId());
         if (screen == null) return Collections.emptyList();
 
-        HashMap<String, SeatStatus> seatStatusMap = showSeatRepo.findByShowtimeId(showtimeId);
+        Map<String, SeatStatus> seatStatusMap = showSeatRepo.findByShowtimeId(showtimeId);
 
         List<Seat> availableSeats = new ArrayList<>();
         for (Seat seat : screen.getSeatingLayout()) {
@@ -72,7 +72,7 @@ public class MakeBookingService {
         if (showtime == null) return false;
 
         // Verify all seats are still available
-        HashMap<String, SeatStatus> currentStatuses = showSeatRepo.findByShowtimeId(showtimeId);
+        Map<String, SeatStatus> currentStatuses = showSeatRepo.findByShowtimeId(showtimeId);
         for (String seatId : seatAttendeeMap.keySet()) {
             SeatStatus status = currentStatuses.getOrDefault(seatId, SeatStatus.AVAILABLE);
             if (status != SeatStatus.AVAILABLE) {

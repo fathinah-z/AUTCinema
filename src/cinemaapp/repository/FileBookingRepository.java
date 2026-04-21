@@ -13,6 +13,7 @@ import java.util.Map;
 
 public class FileBookingRepository implements BookingRepository {
 
+    // Key: "bookingCode" -> SeatStatus
     private final Map<String, Booking> bookings = new LinkedHashMap<>();
     private final String filepath = "src/bookings.txt";
 

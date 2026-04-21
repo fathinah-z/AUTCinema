@@ -36,7 +36,7 @@ public class BrowsingService {
         List<ShowInfo> showInfoList = new ArrayList<>();
 
         for (Showtime showtime : showtimes) {
-            HashMap<String, SeatStatus> seatMap = showSeatRepo.findByShowtimeId(showtime.getShowtimeId());
+            Map<String, SeatStatus> seatMap = showSeatRepo.findByShowtimeId(showtime.getShowtimeId());
             long availCount = seatMap.values().stream()
                     .filter(status -> status == SeatStatus.AVAILABLE)
                     .count();
