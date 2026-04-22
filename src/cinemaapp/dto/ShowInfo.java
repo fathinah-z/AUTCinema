@@ -16,9 +16,4 @@ public class ShowInfo {
 
     public int getAvailSeats() { return availSeats; }
     public void setAvailSeats(int availSeats) { this.availSeats = availSeats; }
-
-    @Override
-    public String toString() {
-        return String.format("ShowInfo[%s | Available Seats:%d]", showtime, availSeats);
-    }
 }

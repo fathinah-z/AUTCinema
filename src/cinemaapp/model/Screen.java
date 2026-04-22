@@ -5,10 +5,10 @@ import java.util.List;
 public class Screen {
 
     private final String screenId;
-    private final char firstRow;
-    private final char lastRow;
-    private final int seatsPerRow;
-    private final List<Seat> seatingLayout;
+    private char firstRow;
+    private char lastRow;
+    private int seatsPerRow;
+    private List<Seat> seatingLayout;
 
     public Screen(String screenId, char firstRow, char lastRow, int seatsPerRow, List<Seat> seatingLayout) {
         this.screenId = screenId;
@@ -25,16 +25,32 @@ public class Screen {
     public char getFirstRow() {
         return firstRow;
     }
+    
+    public void setFirstRow(char firstRow) {
+        this.firstRow = firstRow;
+    }
 
     public char getLastRow() {
         return lastRow;
+    }
+    
+    public void setLastRow(char lastRow) {
+        this.lastRow = lastRow;
     }
 
     public int getSeatsPerRow() {
         return seatsPerRow;
     }
+    
+    public void setSeatsPerRow(int seatsPerRow) {
+        this.seatsPerRow = seatsPerRow;
+    }
 
     public List<Seat> getSeatingLayout() {
         return seatingLayout;
+    }
+    
+    public void setSeatingLayout(List<Seat> seatingLayout) {
+        this.seatingLayout = seatingLayout;
     }
 }

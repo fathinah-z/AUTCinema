@@ -9,10 +9,10 @@ public class Booking {
     /**
      * @return the showtimeId
      */
-    private String bookingCode;
-    private String showtimeId;
-    private List<BookingItem> bookingItems;
-    private LocalDateTime bookingDate;
+    private final String bookingCode;
+    private final String showtimeId;
+    private final List<BookingItem> bookingItems;
+    private final LocalDateTime bookingDate;
     private double totalPrice;
 
     public Booking(String bookingCode, String showtimeId) {
@@ -37,45 +37,19 @@ public class Booking {
         return bookingCode;
     }
 
-    public void setBookingCode(String bookingCode) {
-        this.bookingCode = bookingCode;
-    }
-
     public String getShowtimeId() {
         return showtimeId;
-    }
-
-    public void setShowtimeId(String showtimeId) {
-        this.showtimeId = showtimeId;
     }
 
     public List<BookingItem> getBookingItems() {
         return bookingItems;
     }
 
-    public void setBookingItems(List<BookingItem> bookingItems) {
-        this.bookingItems = bookingItems;
-    }
-
     public LocalDateTime getBookingDate() {
         return bookingDate;
     }
 
-    public void setBookingDate(LocalDateTime bookingDate) {
-        this.bookingDate = bookingDate;
-    }
-
     public double getTotalPrice() {
         return totalPrice;
-    }
-
-    public void setTotalPrice(double totalPrice) {
-        this.totalPrice = totalPrice;
-    }
-
-    @Override
-    public String toString() {
-        return String.format("Booking[Code:%s | ShowtimeId:%s | Items:%d | Total:$%.2f | Date:%s]",
-                bookingCode, showtimeId, bookingItems.size(), totalPrice, bookingDate);
     }
 }

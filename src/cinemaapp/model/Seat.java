@@ -2,7 +2,7 @@ package cinemaapp.model;
 
 public class Seat {
 
-    private String seatId;
+    private final String seatId;
     private char row;
     private int number;
     private boolean nearAisle;
@@ -18,10 +18,6 @@ public class Seat {
 
     public String getSeatId() {
         return seatId;
-    }
-
-    public void setSeatId(String seatId) {
-        this.seatId = seatId;
     }
 
     public char getRow() {
@@ -54,11 +50,5 @@ public class Seat {
 
     public void setAccessible(boolean accessible) {
         isAccessible = accessible;
-    }
-
-    @Override
-    public String toString() {
-        return String.format("Seat[%s | Row:%c | Aisle:%b | Accessible:%b]",
-                seatId, row, nearAisle, isAccessible);
     }
 }

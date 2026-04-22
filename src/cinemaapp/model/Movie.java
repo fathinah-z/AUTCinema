@@ -2,7 +2,7 @@ package cinemaapp.model;
 
 public class Movie {
 
-    private String movieId;
+    private final String movieId;
     private String title;
     private MovieRating rating;
     private String description;
@@ -18,10 +18,6 @@ public class Movie {
 
     public String getMovieId() {
         return movieId;
-    }
-
-    public void setMovieId(String movieId) {
-        this.movieId = movieId;
     }
 
     public String getTitle() {

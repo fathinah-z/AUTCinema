@@ -17,9 +17,4 @@ public class MovieDetails {
 
     public List<ShowInfo> getShowtimes() { return showtimes; }
     public void setShowtimes(List<ShowInfo> showtimes) { this.showtimes = showtimes; }
-
-    @Override
-    public String toString() {
-        return String.format("MovieDetails[%s | Showtimes:%d]", movie.getTitle(), showtimes.size());
-    }
 }

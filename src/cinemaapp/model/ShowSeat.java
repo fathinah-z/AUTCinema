@@ -2,8 +2,8 @@ package cinemaapp.model;
 
 public class ShowSeat {
 
-    private String showtimeId;
-    private String seatId;
+    private final String showtimeId;
+    private final String seatId;
     private SeatStatus seatStatus;
 
     public ShowSeat(String showtimeId, String seatId, SeatStatus seatStatus) {
@@ -16,16 +16,8 @@ public class ShowSeat {
         return showtimeId;
     }
 
-    public void setShowtimeId(String showtimeId) {
-        this.showtimeId = showtimeId;
-    }
-
     public String getSeatId() {
         return seatId;
-    }
-
-    public void setSeatId(String seatId) {
-        this.seatId = seatId;
     }
 
     public SeatStatus getSeatStatus() {
@@ -34,11 +26,5 @@ public class ShowSeat {
 
     public void setSeatStatus(SeatStatus seatStatus) {
         this.seatStatus = seatStatus;
-    }
-
-    @Override
-    public String toString() {
-        return String.format("ShowSeat[Show:%s | Seat:%s | Status:%s]",
-                showtimeId, seatId, seatStatus);
     }
 }

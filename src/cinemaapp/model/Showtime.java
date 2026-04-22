@@ -4,10 +4,10 @@ import java.time.LocalDateTime;
 
 public class Showtime {
 
-    private String showtimeId;
+    private final String showtimeId;
+    private final String movieId;
+    private final String screenId;
     private LocalDateTime dateTime;
-    private String movieId;
-    private String screenId;
     private double basePrice;
 
     public Showtime(String showtimeId, String movieId, String screenId, LocalDateTime dateTime, double basePrice) {
@@ -22,8 +22,12 @@ public class Showtime {
         return showtimeId;
     }
 
-    public void setShowtimeId(String showtimeId) {
-        this.showtimeId = showtimeId;
+    public String getMovieId() {
+        return movieId;
+    }
+
+    public String getScreenId() {
+        return screenId;
     }
 
     public LocalDateTime getDateTime() {
@@ -34,33 +38,11 @@ public class Showtime {
         this.dateTime = dateTime;
     }
 
-    public String getMovieId() {
-        return movieId;
-    }
-
-    public void setMovieId(String movieId) {
-        this.movieId = movieId;
-    }
-
-    public String getScreenId() {
-        return screenId;
-    }
-
-    public void setScreenId(String screenId) {
-        this.screenId = screenId;
-    }
-
     public double getBasePrice() {
         return basePrice;
     }
 
     public void setBasePrice(double basePrice) {
         this.basePrice = basePrice;
-    }
-
-    @Override
-    public String toString() {
-        return String.format("Showtime[%s | Movie:%s | %s | $%.2f]",
-                showtimeId, movieId, dateTime, basePrice);
     }
 }
