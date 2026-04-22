@@ -5,6 +5,7 @@ import cinemaapp.dto.ShowInfo;
 import cinemaapp.filter.*;
 import cinemaapp.model.*;
 import cinemaapp.service.*;
+import java.time.LocalDateTime;
 
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -26,7 +27,6 @@ public class CLIController {
     }
 
     private static class BookingSummary {
-
         String movieTitle;
         String showtimeFormatted;
         Collection<String> seats;
@@ -111,7 +111,6 @@ public class CLIController {
     }
 
     public void makeBooking(String showtimeId, double basePrice) {
-
         Screen screen = makeBookingService.getScreen(showtimeId);
         Map<String, AttendeeType> cart = new LinkedHashMap<>();
 
@@ -134,13 +133,7 @@ public class CLIController {
 
             String seatId = selectSeatId(showtimeId, filteredSeats, useFilters);
 
-            boolean reserved = makeBookingService.reserveSeat(showtimeId, seatId);
-
-            if (!reserved) {
-                System.out.println("Sorry, that seat was just taken by another user.");
-                System.out.println("Please choose a different seat.");
-                continue; // go back to seat selection
-            }
+            makeBookingService.reserveSeat(showtimeId, seatId);
 
             printAttendeeTypes();
             AttendeeType type = selectAttendeeType();
@@ -174,7 +167,7 @@ public class CLIController {
 
         printBookingSummary(buildSummaryFromBooking(booking));
 
-        if (!confirmCancellation()) {
+        if (!confirmCancellation(booking)) {
             return;
         }
 
@@ -682,7 +675,15 @@ public class CLIController {
         return summary;
     }
 
-    private boolean confirmCancellation() {
+    private boolean confirmCancellation(Booking booking) {
+        boolean canRefund = refundEligible(booking);
+        if (canRefund) {
+            System.out.println("\nRefund is eligible as cancellation will be at least 5 days before showtime.");
+        }
+        else {
+            System.out.println("\nRefund is not eligible as cancellation will be less than 5 days before booking.");
+        }
+        
         while (true) {
             System.out.print("\nConfirm cancellation? (y/n): ");
             String input = scanner.nextLine().trim();
@@ -699,13 +700,22 @@ public class CLIController {
         }
     }
 
+    private boolean refundEligible(Booking booking) {
+        return cancelBookingService.isRefundEligible(booking, LocalDateTime.now());
+    }
+    
     private void performCancellation(Booking booking) {
+        boolean canRefund = refundEligible(booking);
         boolean success = cancelBookingService.cancelBooking(booking);
 
         if (success) {
             System.out.println("Booking cancelled successfully.");
+            if (canRefund) {
+                System.out.println("Booking refunded.");
+            }
         } else {
             System.out.println("Cancellation failed. Returning to main menu.");
         }
     }
+    
 }

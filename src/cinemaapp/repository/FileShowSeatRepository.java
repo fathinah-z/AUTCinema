@@ -50,34 +50,6 @@ public class FileShowSeatRepository implements ShowSeatRepository {
         saveToFile();
     }
 
-    @Override
-    public synchronized boolean tryReserveSeat(String showtimeId, String seatId) {
-        Map<String, SeatStatus> map = findByShowtimeId(showtimeId);
-        SeatStatus current = map.get(seatId);
-
-        if (current == SeatStatus.AVAILABLE) {
-            map.put(seatId, SeatStatus.RESERVED);
-            saveToFile();
-            return true;
-        }
-
-        return false;
-    }
-
-    @Override
-    public synchronized boolean tryBookSeat(String showtimeId, String seatId) {
-        Map<String, SeatStatus> map = findByShowtimeId(showtimeId);
-        SeatStatus current = map.get(seatId);
-
-        if (current == SeatStatus.RESERVED) {
-            map.put(seatId, SeatStatus.BOOKED);
-            saveToFile();
-            return true;
-        }
-
-        return false;
-    }
-
     private ShowSeat parseShowSeat(String line) {
         String[] parts = line.split("\\|");
 

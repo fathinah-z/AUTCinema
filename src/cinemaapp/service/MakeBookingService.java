@@ -57,8 +57,8 @@ public class MakeBookingService {
         return status == SeatStatus.AVAILABLE;
     }
 
-    public boolean reserveSeat(String showtimeId, String seatId) {
-        return showSeatRepo.tryReserveSeat(showtimeId, seatId);
+    public void reserveSeat(String showtimeId, String seatId) {
+        showSeatRepo.updateSeatStatus(showtimeId, seatId, SeatStatus.RESERVED);
     }
 
     public void unreserveSeat(String showtimeId, String seatId) {
@@ -132,9 +132,7 @@ public class MakeBookingService {
             AttendeeType attendeeType = entry.getValue();
             double itemPrice = pricingService.calculateItemPrice(attendeeType, showtime.getBasePrice());
             booking.addBookingItem(new BookingItem(seatId, attendeeType, itemPrice));
-            if (!showSeatRepo.tryBookSeat(showtimeId, seatId)) {
-                return null; // someone else booked it first
-            }
+            showSeatRepo.updateSeatStatus(showtimeId, seatId, SeatStatus.BOOKED);
         }
 
         booking.calculateTotalPrice();
