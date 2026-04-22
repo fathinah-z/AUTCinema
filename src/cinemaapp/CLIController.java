@@ -27,6 +27,7 @@ public class CLIController {
     }
 
     private static class BookingSummary {
+
         String movieTitle;
         String showtimeFormatted;
         Collection<String> seats;
@@ -98,20 +99,21 @@ public class CLIController {
             if (selectedShow == null) {
                 continue; // back to movie list
             }
-            if (confirmMakeBooking(details.getMovie(), selectedShow)) {
-                makeBooking(
-                        selectedShow.getShowtimeId(),
-                        selectedShow.getBasePrice()
-                );
+
+            printRatingWarning(selectedMovie.getRating());
+
+            if (confirmShowtime(details.getMovie(), selectedShow)) {
+                makeBooking(details.getMovie(), selectedShow);
                 return;
             } else {
-                System.out.println("Booking cancelled. Returning to main menu.");
+                System.out.println("Booking cancelled. Returning to main menu...");
             }
         }
     }
 
-    public void makeBooking(String showtimeId, double basePrice) {
-        Screen screen = makeBookingService.getScreen(showtimeId);
+    public void makeBooking(Movie movie, Showtime show) {
+        String showtimeId = show.getShowtimeId();
+        Screen screen = makeBookingService.getScreenByShow(showtimeId);
         Map<String, AttendeeType> cart = new LinkedHashMap<>();
 
         boolean bookingSeats = true;
@@ -135,8 +137,10 @@ public class CLIController {
 
             makeBookingService.reserveSeat(showtimeId, seatId);
 
-            printAttendeeTypes();
-            AttendeeType type = selectAttendeeType();
+            printRatingWarning(movie.getRating());
+
+            printAttendeeTypes(movie.getRating(), show);
+            AttendeeType type = selectAttendeeType(movie.getRating());
 
             if (!confirmSeatChoice(seatId, type)) {
                 makeBookingService.unreserveSeat(showtimeId, seatId);
@@ -161,7 +165,7 @@ public class CLIController {
         Booking booking = lookupBooking();
 
         if (booking == null) {
-            System.out.println("No booking found with that code. Returning to main menu.");
+            System.out.println("No booking found with that code. Returning to main menu...");
             return;
         }
 
@@ -197,6 +201,13 @@ public class CLIController {
         }
 
         return sb.toString();
+    }
+
+    private void printRatingWarning(MovieRating rating) {
+        String warning = makeBookingService.getWarningByRating(rating);
+        if (warning != null) {
+            System.out.println("\n" + warning);
+        }
     }
 
     private void printBookingSummary(BookingSummary summary) {
@@ -286,7 +297,7 @@ public class CLIController {
         }
     }
 
-    private boolean confirmMakeBooking(Movie movie, Showtime show) {
+    private boolean confirmShowtime(Movie movie, Showtime show) {
         while (true) {
             System.out.printf(
                     "\nYou are about to make a booking for %s on %s. Confirm? (y/n): ",
@@ -309,7 +320,7 @@ public class CLIController {
 
     //---Make Booking Methods---
     private void printSeatMap(String showtimeId) {
-        List<Seat> layout = makeBookingService.getScreen(showtimeId).getSeatingLayout();
+        List<Seat> layout = makeBookingService.getScreenByShow(showtimeId).getSeatingLayout();
         Map<String, SeatStatus> statusMap = makeBookingService.getSeatStatusMap(showtimeId);
 
         System.out.print("\nSeating Layout (row A is closest to the screen):");
@@ -415,7 +426,7 @@ public class CLIController {
                 System.out.printf("\nIn this screen, the min row is %c and the max row is %c.",
                         screen.getFirstRow(), screen.getLastRow());
 
-                System.out.printf("\nEnter minimum row %c-%c: ",
+                System.out.printf("\n\nEnter minimum row %c-%c: ",
                         screen.getFirstRow(), screen.getLastRow());
 
                 char minRow = askRow(screen.getFirstRow(), screen.getLastRow());
@@ -503,17 +514,31 @@ public class CLIController {
         }
     }
 
-    private void printAttendeeTypes() {
-        System.out.println("\nAttendee Types:");
-        AttendeeType[] types = AttendeeType.values();
+    private List<AttendeeType> getAllowedAttendeeTypes(MovieRating rating) {
+        List<AttendeeType> allowed = new ArrayList<>();
 
-        for (int i = 0; i < types.length; i++) {
-            System.out.printf("  %d. %s%n", i + 1, types[i]);
+        for (AttendeeType type : AttendeeType.values()) {
+            if (rating == MovieRating.R18 && type == AttendeeType.CHILD) {
+                continue; // skip child
+            }
+            allowed.add(type);
+        }
+
+        return allowed;
+    }
+
+    private void printAttendeeTypes(MovieRating rating, Showtime show) {
+        System.out.println("\nAttendee Types:");
+        List<AttendeeType> types = getAllowedAttendeeTypes(rating);
+
+        for (int i = 0; i < types.size(); i++) {
+            double price = makeBookingService.calculateItemPrice(types.get(i), show.getBasePrice());
+            System.out.printf("  %d. %-10s $%.2f%n", i + 1, types.get(i), price);
         }
     }
 
-    private AttendeeType selectAttendeeType() {
-        AttendeeType[] types = AttendeeType.values();
+    private AttendeeType selectAttendeeType(MovieRating rating) {
+        List<AttendeeType> types = getAllowedAttendeeTypes(rating);
 
         while (true) {
             System.out.print("\nChoose attendee type number: ");
@@ -521,8 +546,8 @@ public class CLIController {
 
             int idx = parseIntSafe(input) - 1;
 
-            if (idx >= 0 && idx < types.length) {
-                return types[idx];
+            if (idx >= 0 && idx < types.size()) {
+                return types.get(idx);
             }
 
             System.out.println("Invalid selection. Try again.");
@@ -531,7 +556,7 @@ public class CLIController {
 
     private boolean confirmSeatChoice(String seatId, AttendeeType type) {
         while (true) {
-            System.out.printf("\nConfirm seat %s for (%s)? (y/n): ",
+            System.out.printf("\nAdd seat %s for (%s) to your booking? (y/n): ",
                     seatId, type);
             String input = scanner.nextLine().trim();
 
@@ -539,6 +564,7 @@ public class CLIController {
                 return true;
             }
             if (input.equalsIgnoreCase("n")) {
+                System.out.println("Seat discarded. Returning to seat selection...");
                 return false;
             }
 
@@ -590,7 +616,7 @@ public class CLIController {
                 for (String seatId : cart.keySet()) {
                     makeBookingService.unreserveSeat(showtimeId, seatId);
                 }
-                System.out.println("Booking cancelled. Returning to main menu.");
+                System.out.println("Booking cancelled. Returning to main menu...");
                 return false;
             }
 
@@ -610,7 +636,7 @@ public class CLIController {
                     for (String seatId : cart.keySet()) {
                         makeBookingService.unreserveSeat(showtimeId, seatId);
                     }
-                    System.out.println("Booking failed. Returning to main menu.");
+                    System.out.println("Booking failed. Returning to main menu...");
                     return;
                 }
                 System.out.println("\nBooking confirmed!");
@@ -637,7 +663,7 @@ public class CLIController {
                     for (String seatId : cart.keySet()) {
                         makeBookingService.unreserveSeat(showtimeId, seatId);
                     }
-                    System.out.println("Booking cancelled. Returning to main menu.");
+                    System.out.println("Booking cancelled. Returning to main menu...");
                     return;
                 }
 
@@ -679,11 +705,10 @@ public class CLIController {
         boolean canRefund = refundEligible(booking);
         if (canRefund) {
             System.out.println("\nRefund is eligible as cancellation will be at least 5 days before showtime.");
-        }
-        else {
+        } else {
             System.out.println("\nRefund is not eligible as cancellation will be less than 5 days before booking.");
         }
-        
+
         while (true) {
             System.out.print("\nConfirm cancellation? (y/n): ");
             String input = scanner.nextLine().trim();
@@ -692,7 +717,7 @@ public class CLIController {
                 return true;
             }
             if (input.equalsIgnoreCase("n")) {
-                System.out.println("Cancellation aborted. Returning to main menu.");
+                System.out.println("Cancellation aborted. Returning to main menu...");
                 return false;
             }
 
@@ -703,7 +728,7 @@ public class CLIController {
     private boolean refundEligible(Booking booking) {
         return cancelBookingService.isRefundEligible(booking, LocalDateTime.now());
     }
-    
+
     private void performCancellation(Booking booking) {
         boolean canRefund = refundEligible(booking);
         boolean success = cancelBookingService.cancelBooking(booking);
@@ -714,8 +739,7 @@ public class CLIController {
                 System.out.println("Booking refunded.");
             }
         } else {
-            System.out.println("Cancellation failed. Returning to main menu.");
+            System.out.println("Cancellation failed. Returning to main menu...");
         }
     }
-    
 }

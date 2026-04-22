@@ -26,7 +26,7 @@ public class CinemaApp {
                 movieRepo, showtimeRepo, showSeatRepo);
 
         MakeBookingService makeBookingService = new MakeBookingService(
-                bookingRepo, screenRepo, showtimeRepo, showSeatRepo,
+                bookingRepo, screenRepo, showtimeRepo, showSeatRepo, movieRepo,
                 codeGenerator, pricingService);
 
         CancelBookingService cancelBookingService = new CancelBookingService(
