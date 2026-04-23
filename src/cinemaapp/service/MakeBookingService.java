@@ -116,24 +116,18 @@ public class MakeBookingService {
                 return null; // no warning for G, PG, M
         }
     }
-    
+
     public double calculateItemPrice(AttendeeType type, double basePrice) {
         return pricingService.calculateItemPrice(type, basePrice);
     }
 
-    public double calculateCartTotal(String showtimeId, Map<String, AttendeeType> cart) {
-        Showtime showtime = showtimeRepo.findById(showtimeId);
-        double basePrice = showtime.getBasePrice();
-
-        double total = 0.0;
-        for (AttendeeType type : cart.values()) {
-            total += pricingService.calculateItemPrice(type, basePrice);
-        }
-
-        return total;
+    public double calculateCartTotal(List<BookingItem> cart) {
+        return cart.stream()
+                .mapToDouble(BookingItem::getItemPrice)
+                .sum();
     }
 
-    public String makeBooking(String showtimeId, Map<String, AttendeeType> seatAttendeeMap) {
+    public String makeBooking(String showtimeId, List<BookingItem> cart) {
         Showtime showtime = showtimeRepo.findById(showtimeId);
         if (showtime == null) {
             return null;
@@ -145,17 +139,15 @@ public class MakeBookingService {
         String bookingCode = codeGenerator.generateUniqueCode(bookingRepo);
         Booking booking = new Booking(bookingCode, showtimeId);
 
-        for (Map.Entry<String, AttendeeType> entry : seatAttendeeMap.entrySet()) {
-            // child cannot book R18 movie
-            if (movie.getRating() == MovieRating.R18 && entry.getValue() == AttendeeType.CHILD) {
+        for (BookingItem item : cart) {
+            // Validate R18 rule
+            if (movie.getRating() == MovieRating.R18
+                    && item.getAttendeeType() == AttendeeType.CHILD) {
                 throw new IllegalArgumentException("Children cannot book R18 movies.");
             }
 
-            String seatId = entry.getKey();
-            AttendeeType attendeeType = entry.getValue();
-            double itemPrice = pricingService.calculateItemPrice(attendeeType, showtime.getBasePrice());
-            booking.addBookingItem(new BookingItem(seatId, attendeeType, itemPrice));
-            showSeatRepo.updateSeatStatus(showtimeId, seatId, SeatStatus.BOOKED);
+            booking.addBookingItem(item);
+            showSeatRepo.updateSeatStatus(showtimeId, item.getSeatId(), SeatStatus.BOOKED);
         }
 
         booking.calculateTotalPrice();

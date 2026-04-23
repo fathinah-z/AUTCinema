@@ -114,7 +114,7 @@ public class CLIController {
     public void makeBooking(Movie movie, Showtime show) {
         String showtimeId = show.getShowtimeId();
         Screen screen = makeBookingService.getScreenByShow(showtimeId);
-        Map<String, AttendeeType> cart = new LinkedHashMap<>();
+        List<BookingItem> cart = new ArrayList<>();
 
         boolean bookingSeats = true;
 
@@ -142,12 +142,15 @@ public class CLIController {
             printAttendeeTypes(movie.getRating(), show);
             AttendeeType type = selectAttendeeType(movie.getRating());
 
-            if (!confirmSeatChoice(seatId, type)) {
+            double price = makeBookingService.calculateItemPrice(type, show.getBasePrice());
+            BookingItem item = new BookingItem(seatId, type, price);
+
+            if (!confirmSeatChoice(item)) {
                 makeBookingService.unreserveSeat(showtimeId, seatId);
                 continue;
             }
 
-            cart.put(seatId, type);
+            cart.add(item);
 
             bookingSeats = askBookAnotherSeat();
         }
@@ -207,6 +210,12 @@ public class CLIController {
         String warning = makeBookingService.getWarningByRating(rating);
         if (warning != null) {
             System.out.println("\n" + warning);
+        }
+    }
+
+    private void unreserveAll(List<BookingItem> cart, String showtimeId) {
+        for (BookingItem item : cart) {
+            makeBookingService.unreserveSeat(showtimeId, item.getSeatId());
         }
     }
 
@@ -554,16 +563,21 @@ public class CLIController {
         }
     }
 
-    private boolean confirmSeatChoice(String seatId, AttendeeType type) {
+    private boolean confirmSeatChoice(BookingItem item) {
         while (true) {
-            System.out.printf("\nAdd seat %s for (%s) to your booking? (y/n): ",
-                    seatId, type);
-            String input = scanner.nextLine().trim();
+            System.out.printf(
+                    "\nAdd seat %s (%s) for $%.2f to your booking? (y/n): ",
+                    item.getSeatId(),
+                    item.getAttendeeType(),
+                    item.getItemPrice()
+            );
 
-            if (input.equalsIgnoreCase("y")) {
+            String input = scanner.nextLine().trim().toLowerCase();
+
+            if (input.equals("y")) {
                 return true;
             }
-            if (input.equalsIgnoreCase("n")) {
+            if (input.equals("n")) {
                 System.out.println("Seat discarded. Returning to seat selection...");
                 return false;
             }
@@ -588,7 +602,7 @@ public class CLIController {
         }
     }
 
-    private BookingSummary buildSummaryFromCart(String showtimeId, Map<String, AttendeeType> cart) {
+    private BookingSummary buildSummaryFromCart(String showtimeId, List<BookingItem> cart) {
         Showtime st = makeBookingService.getShowtimeById(showtimeId);
         Movie movie = browsingService.getMovieById(st.getMovieId());
 
@@ -596,13 +610,16 @@ public class CLIController {
         summary.movieTitle = movie.getTitle();
         summary.showtimeFormatted = st.getDateTime()
                 .format(DateTimeFormatter.ofPattern("dd MMM yyyy, h:mm a"));
-        summary.seats = cart.keySet();
-        summary.totalPrice = makeBookingService.calculateCartTotal(showtimeId, cart);
+        summary.seats = cart.stream()
+                .map(BookingItem::getSeatId)
+                .toList();
+
+        summary.totalPrice = makeBookingService.calculateCartTotal(cart);
 
         return summary;
     }
 
-    private boolean confirmBooking(String showtimeId, Map<String, AttendeeType> cart) {
+    private boolean confirmBooking(String showtimeId, List<BookingItem> cart) {
         while (true) {
             System.out.print("\nConfirm booking? (y/n): ");
             String input = scanner.nextLine().trim();
@@ -612,10 +629,8 @@ public class CLIController {
             }
 
             if (input.equalsIgnoreCase("n")) {
-                // Release all reserved seats
-                for (String seatId : cart.keySet()) {
-                    makeBookingService.unreserveSeat(showtimeId, seatId);
-                }
+                unreserveAll(cart, showtimeId);
+
                 System.out.println("Booking cancelled. Returning to main menu...");
                 return false;
             }
@@ -624,7 +639,7 @@ public class CLIController {
         }
     }
 
-    private void processPayment(String showtimeId, Map<String, AttendeeType> cart) {
+    private void processPayment(String showtimeId, List<BookingItem> cart) {
         while (true) {
             System.out.print("\nHave you made the payment? (y/n): ");
             String paid = scanner.nextLine().trim();
@@ -632,10 +647,8 @@ public class CLIController {
             if (paid.equalsIgnoreCase("y")) {
                 String bookingCode = makeBookingService.makeBooking(showtimeId, cart);
                 if (bookingCode == null) {
-                    // Release reserved seats
-                    for (String seatId : cart.keySet()) {
-                        makeBookingService.unreserveSeat(showtimeId, seatId);
-                    }
+                    unreserveAll(cart, showtimeId);
+
                     System.out.println("Booking failed. Returning to main menu...");
                     return;
                 }
@@ -659,10 +672,8 @@ public class CLIController {
                 }
 
                 if (retry.equalsIgnoreCase("n")) {
-                    // Release reserved seats
-                    for (String seatId : cart.keySet()) {
-                        makeBookingService.unreserveSeat(showtimeId, seatId);
-                    }
+                    unreserveAll(cart, showtimeId);
+
                     System.out.println("Booking cancelled. Returning to main menu...");
                     return;
                 }
