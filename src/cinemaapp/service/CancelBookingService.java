@@ -47,7 +47,7 @@ public class CancelBookingService {
 
         LocalDateTime showtimeDateTime = showtime.getDateTime();
 
-        // Refund is eligible if showtime is more than 5 days away
+        // Refund is eligible if showtime is at least 5 days away
         return now.plusDays(5).isBefore(showtimeDateTime);
     }
 }
