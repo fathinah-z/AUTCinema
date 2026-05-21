@@ -60,7 +60,7 @@ public class DatabaseInitialiser {
             // Movie
             st.execute(
                 "CREATE TABLE Movie ("
-                + "  movieId     VARCHAR(3)   NOT NULL PRIMARY KEY, "
+                + "  movieId     VARCHAR(10)   NOT NULL PRIMARY KEY, "
                 + "  title       VARCHAR(50)  NOT NULL, "
                 + "  rating      VARCHAR(20)  NOT NULL, "
                 + "  description VARCHAR(255) NOT NULL, "
@@ -71,19 +71,19 @@ public class DatabaseInitialiser {
             // Screen
             st.execute(
                 "CREATE TABLE Screen ("
-                + "  screenId VARCHAR(3) NOT NULL PRIMARY KEY"
+                + "  screenId VARCHAR(10) NOT NULL PRIMARY KEY"
                 + ")"
             );
 
             // Seat  (screenId FK → Screen)
             st.execute(
                 "CREATE TABLE Seat ("
-                + "  seatId       VARCHAR(3)  NOT NULL PRIMARY KEY, "
+                + "  seatId       VARCHAR(10)  NOT NULL PRIMARY KEY, "
                 + "  row          CHAR(1)     NOT NULL, "
                 + "  number       INTEGER     NOT NULL, "
                 + "  nearAisle    INTEGER     NOT NULL, "   // 0 / 1 for boolean
                 + "  isAccessible INTEGER     NOT NULL, "
-                + "  screenId     VARCHAR(3)  NOT NULL, "
+                + "  screenId     VARCHAR(10)  NOT NULL, "
                 + "  CONSTRAINT fk_seat_screen FOREIGN KEY (screenId) REFERENCES Screen(screenId)"
                 + ")"
             );
@@ -91,11 +91,11 @@ public class DatabaseInitialiser {
             // Showtime  (screenId FK, movieId FK)
             st.execute(
                 "CREATE TABLE Showtime ("
-                + "  showtimeId VARCHAR(3)   NOT NULL PRIMARY KEY, "
+                + "  showtimeId VARCHAR(10)   NOT NULL PRIMARY KEY, "
                 + "  dateTime   TIMESTAMP    NOT NULL, "
                 + "  basePrice  FLOAT        NOT NULL, "
-                + "  screenId   VARCHAR(3)   NOT NULL, "
-                + "  movieId    VARCHAR(3)   NOT NULL, "
+                + "  screenId   VARCHAR(10)   NOT NULL, "
+                + "  movieId    VARCHAR(10)   NOT NULL, "
                 + "  CONSTRAINT fk_showtime_screen FOREIGN KEY (screenId) REFERENCES Screen(screenId), "
                 + "  CONSTRAINT fk_showtime_movie  FOREIGN KEY (movieId)  REFERENCES Movie(movieId)"
                 + ")"
@@ -104,8 +104,8 @@ public class DatabaseInitialiser {
             // ShowSeat  (composite PK; FKs to Seat and Showtime)
             st.execute(
                 "CREATE TABLE ShowSeat ("
-                + "  seatId      VARCHAR(3)  NOT NULL, "
-                + "  showtimeId  VARCHAR(3)  NOT NULL, "
+                + "  seatId      VARCHAR(10)  NOT NULL, "
+                + "  showtimeId  VARCHAR(10)  NOT NULL, "
                 + "  seatStatus  VARCHAR(20) NOT NULL, "
                 + "  PRIMARY KEY (seatId, showtimeId), "
                 + "  CONSTRAINT fk_showseat_seat     FOREIGN KEY (seatId)     REFERENCES Seat(seatId), "
@@ -128,7 +128,7 @@ public class DatabaseInitialiser {
             st.execute(
                 "CREATE TABLE BookingItem ("
                 + "  bookingCode  VARCHAR(20) NOT NULL, "
-                + "  seatId       VARCHAR(3)  NOT NULL, "
+                + "  seatId       VARCHAR(10)  NOT NULL, "
                 + "  itemPrice    FLOAT       NOT NULL, "
                 + "  attendeeType VARCHAR(20) NOT NULL, "
                 + "  PRIMARY KEY (bookingCode, seatId), "
@@ -225,7 +225,7 @@ public class DatabaseInitialiser {
         int middle = seatsPerRow / 2;
         for (char row = firstRow; row <= lastRow; row++) {
             for (int i = 1; i <= seatsPerRow; i++) {
-                // seatId is at most 3 chars: e.g. "A01" – VARCHAR(3) is fine
+                // seatId is at most 10 chars: e.g. "A01" – VARCHAR(3) is fine
                 String seatId = row + String.format("%02d", i);
                 int nearAisle = (i == 1 || i == middle || i == middle + 1 || i == seatsPerRow) ? 1 : 0;
                 int accessible = (row == lastRow
