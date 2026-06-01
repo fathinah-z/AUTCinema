@@ -1,4 +1,6 @@
 /build/
 /dist/
 /nbproject/private/
-/derby.log/
+/derby.log
+/AUTCinemaDB/
+
