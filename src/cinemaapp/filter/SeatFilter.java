@@ -2,6 +2,6 @@ package cinemaapp.filter;
 
 import cinemaapp.model.Seat;
 
-public interface SeatFilter {
-    boolean matches(Seat seat);
+public abstract class SeatFilter {
+    public abstract boolean matches(Seat seat);
 }

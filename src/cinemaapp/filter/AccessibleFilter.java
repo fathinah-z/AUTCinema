@@ -2,7 +2,7 @@ package cinemaapp.filter;
 
 import cinemaapp.model.Seat;
 
-public class AccessibleFilter implements SeatFilter {
+public class AccessibleFilter extends SeatFilter {
     private boolean aisleOnly;
 
     public AccessibleFilter(boolean aisleOnly) {

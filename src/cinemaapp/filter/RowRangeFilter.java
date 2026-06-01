@@ -2,7 +2,7 @@ package cinemaapp.filter;
 
 import cinemaapp.model.Seat;
 
-public class RowRangeFilter implements SeatFilter {
+public class RowRangeFilter extends SeatFilter {
     private char minRow;
     private char maxRow;
 
