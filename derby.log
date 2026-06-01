@@ -1,6 +1,6 @@
 ----------------------------------------------------------------
-Mon Jun 01 15:15:49 NZST 2026:
-Booting Derby version The Apache Software Foundation - Apache Derby - 10.14.2.0 - (1828579): instance a816c00e-019e-812e-31c2-00000d4ef8a8 
+Mon Jun 01 15:31:31 NZST 2026:
+Booting Derby version The Apache Software Foundation - Apache Derby - 10.14.2.0 - (1828579): instance a816c00e-019e-813c-9452-00000d4ef820 
 on database directory C:\Users\priya\OneDrive\Documents\NetBeansProjects\AUTCinema\AUTCinemaDB with class loader jdk.internal.loader.ClassLoaders$AppClassLoader@105be200 
 Loaded from file:/C:/Users/priya/OneDrive/Documents/NetBeansProjects/AUTCinema/lib/derby_1.jar
 java.vendor=Eclipse Adoptium
@@ -11,3 +11,9 @@ os.arch=amd64
 os.version=10.0
 derby.system.home=null
 Database Class Loader started - derby.database.classpath=''
+----------------------------------------------------------------
+Mon Jun 01 15:32:23 NZST 2026: Shutting down Derby engine
+----------------------------------------------------------------
+Mon Jun 01 15:32:23 NZST 2026:
+Shutting down instance a816c00e-019e-813c-9452-00000d4ef820 on database directory C:\Users\priya\OneDrive\Documents\NetBeansProjects\AUTCinema\AUTCinemaDB with class loader jdk.internal.loader.ClassLoaders$AppClassLoader@105be200 
+----------------------------------------------------------------
