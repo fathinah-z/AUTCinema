@@ -47,37 +47,24 @@ public class DatabaseInitialiser {
 
     private void createTables() throws SQLException {
         Connection conn = dbManager.getConnection();
+        
         try (Statement st = conn.createStatement()) {
-
-            // Account
-            st.execute(
-                "CREATE TABLE Account ("
+    for (String sql : new String[]{
+        "CREATE TABLE Account ("
                 + "  username  VARCHAR(50) NOT NULL PRIMARY KEY, "
                 + "  password  VARCHAR(50) NOT NULL"
-                + ")"
-            );
-
-            // Movie
-            st.execute(
-                "CREATE TABLE Movie ("
+                + ")",
+        "CREATE TABLE Movie ("
                 + "  movieId     VARCHAR(10)   NOT NULL PRIMARY KEY, "
                 + "  title       VARCHAR(50)  NOT NULL, "
                 + "  rating      VARCHAR(20)  NOT NULL, "
                 + "  description VARCHAR(255) NOT NULL, "
                 + "  runtime     INTEGER      NOT NULL"
-                + ")"
-            );
-
-            // Screen
-            st.execute(
-                "CREATE TABLE Screen ("
+                + ")",
+        "CREATE TABLE Screen ("
                 + "  screenId VARCHAR(10) NOT NULL PRIMARY KEY"
-                + ")"
-            );
-
-            // Seat  (screenId FK → Screen)
-            st.execute(
-                "CREATE TABLE Seat ("
+                + ")",
+        "CREATE TABLE Seat ("
                 + "  seatId       VARCHAR(10)  NOT NULL PRIMARY KEY, "
                 + "  row          CHAR(1)     NOT NULL, "
                 + "  number       INTEGER     NOT NULL, "
@@ -85,12 +72,8 @@ public class DatabaseInitialiser {
                 + "  isAccessible INTEGER     NOT NULL, "
                 + "  screenId     VARCHAR(10)  NOT NULL, "
                 + "  CONSTRAINT fk_seat_screen FOREIGN KEY (screenId) REFERENCES Screen(screenId)"
-                + ")"
-            );
-
-            // Showtime  (screenId FK, movieId FK)
-            st.execute(
-                "CREATE TABLE Showtime ("
+                + ")",
+        "CREATE TABLE Showtime ("
                 + "  showtimeId VARCHAR(10)   NOT NULL PRIMARY KEY, "
                 + "  dateTime   TIMESTAMP    NOT NULL, "
                 + "  basePrice  FLOAT        NOT NULL, "
@@ -98,35 +81,23 @@ public class DatabaseInitialiser {
                 + "  movieId    VARCHAR(10)   NOT NULL, "
                 + "  CONSTRAINT fk_showtime_screen FOREIGN KEY (screenId) REFERENCES Screen(screenId), "
                 + "  CONSTRAINT fk_showtime_movie  FOREIGN KEY (movieId)  REFERENCES Movie(movieId)"
-                + ")"
-            );
-
-            // ShowSeat  (composite PK; FKs to Seat and Showtime)
-            st.execute(
-                "CREATE TABLE ShowSeat ("
+                + ")",
+        "CREATE TABLE ShowSeat ("
                 + "  seatId      VARCHAR(10)  NOT NULL, "
                 + "  showtimeId  VARCHAR(10)  NOT NULL, "
                 + "  seatStatus  VARCHAR(20) NOT NULL, "
                 + "  PRIMARY KEY (seatId, showtimeId), "
                 + "  CONSTRAINT fk_showseat_seat     FOREIGN KEY (seatId)     REFERENCES Seat(seatId), "
                 + "  CONSTRAINT fk_showseat_showtime FOREIGN KEY (showtimeId) REFERENCES Showtime(showtimeId)"
-                + ")"
-            );
-
-            // Booking  (username FK → Account)
-            st.execute(
-                "CREATE TABLE Booking ("
+                + ")",
+        "CREATE TABLE Booking ("
                 + "  bookingCode  VARCHAR(20) NOT NULL PRIMARY KEY, "
                 + "  bookingDate  DATE        NOT NULL, "
                 + "  totalPrice   FLOAT       NOT NULL, "
                 + "  username     VARCHAR(50) NOT NULL, "
                 + "  CONSTRAINT fk_booking_account FOREIGN KEY (username) REFERENCES Account(username)"
-                + ")"
-            );
-
-            // BookingItem  (composite PK; FKs to Booking and Seat)
-            st.execute(
-                "CREATE TABLE BookingItem ("
+                + ")",
+        "CREATE TABLE BookingItem ("
                 + "  bookingCode  VARCHAR(20) NOT NULL, "
                 + "  seatId       VARCHAR(10)  NOT NULL, "
                 + "  itemPrice    FLOAT       NOT NULL, "
@@ -135,14 +106,15 @@ public class DatabaseInitialiser {
                 + "  CONSTRAINT fk_item_booking FOREIGN KEY (bookingCode) REFERENCES Booking(bookingCode), "
                 + "  CONSTRAINT fk_item_seat    FOREIGN KEY (seatId)      REFERENCES Seat(seatId)"
                 + ")"
-            );
-
+    }) {
+        try {
+            st.execute(sql);
         } catch (SQLException e) {
-            // Derby error code X0Y32 means table already exists – safe to ignore
-            if (!"X0Y32".equals(e.getSQLState())) {
-                throw e;
-            }
+            if (!"X0Y32".equals(e.getSQLState())) throw e;
+            // else: table already exists, skip it
         }
+    }
+}
     }
 
     // -----------------------------------------------------------------------
