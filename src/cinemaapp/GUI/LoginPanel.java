@@ -12,33 +12,33 @@ import java.util.function.Consumer;
 /**
  * Login and registration screen shown when the application starts.
  *
- * This is a brand new file — it does NOT replace CLIController.
- * It lives in:  src/cinemaapp/gui/LoginPanel.java
+ * This is a brand new file — it does NOT replace CLIController. It lives in:
+ * src/cinemaapp/gui/LoginPanel.java
  *
- * The {@code onSuccess} Consumer is injected by MainFrame.
- * When credentials are verified, LoginPanel calls onSuccess.accept(account)
- * and has no further knowledge of what happens — loose coupling via callback.
+ * The {@code onSuccess} Consumer is injected by MainFrame. When credentials are
+ * verified, LoginPanel calls onSuccess.accept(account) and has no further
+ * knowledge of what happens — loose coupling via callback.
  *
- * MVC role: View + Controller for authentication.
- * Uses AccountDAO directly (no service needed for simple credential check).
+ * MVC role: View + Controller for authentication. Uses AccountDAO directly (no
+ * service needed for simple credential check).
  */
 public class LoginPanel extends JPanel {
 
-    private final AccountDAO        accountDAO;
+    private final AccountDAO accountDAO;
     private final Consumer<Account> onSuccess;   // callback to MainFrame
 
-    private JTextField     usernameField;
+    private JTextField usernameField;
     private JPasswordField passwordField;
-    private JLabel         feedbackLabel;
+    private JLabel feedbackLabel;
+    private JButton loginBtn;
 
     public LoginPanel(AccountDAO accountDAO, Consumer<Account> onSuccess) {
         this.accountDAO = accountDAO;
-        this.onSuccess  = onSuccess;
+        this.onSuccess = onSuccess;
         buildUI();
     }
 
     // ── UI ────────────────────────────────────────────────────────────────────
-
     private void buildUI() {
         setLayout(new GridBagLayout());
         setBackground(new Color(18, 18, 30));
@@ -51,8 +51,8 @@ public class LoginPanel extends JPanel {
 
         // Title
         JLabel title = centreLabel("🎬  AUT Cinema", Font.BOLD, 22, Color.WHITE);
-        JLabel sub   = centreLabel("Sign in to continue", Font.PLAIN, 13,
-                                    new Color(160, 160, 180));
+        JLabel sub = centreLabel("Sign in to continue", Font.PLAIN, 13,
+                new Color(160, 160, 180));
 
         // Fields
         usernameField = new JTextField(20);
@@ -66,14 +66,11 @@ public class LoginPanel extends JPanel {
         feedbackLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         // Buttons
-        JButton loginBtn    = makeButton("Log In",   new Color(60, 120, 200));
+        loginBtn = makeButton("Log In", new Color(60, 120, 200));
         JButton registerBtn = makeButton("Register", new Color(55, 55, 75));
 
-        loginBtn.addActionListener(e    -> handleLogin());
+        loginBtn.addActionListener(e -> handleLogin());
         registerBtn.addActionListener(e -> handleRegister());
-
-        // Enter key triggers login
-        getRootPane().setDefaultButton(loginBtn);
 
         // Assemble
         card.add(title);
@@ -97,8 +94,13 @@ public class LoginPanel extends JPanel {
         add(card);
     }
 
-    // ── Handlers ──────────────────────────────────────────────────────────────
+    @Override
+    public void addNotify() {
+        super.addNotify();
+        SwingUtilities.getRootPane(this).setDefaultButton(loginBtn);
+    }
 
+    // ── Handlers ──────────────────────────────────────────────────────────────
     private void handleLogin() {
         String username = usernameField.getText().trim();
         String password = new String(passwordField.getPassword());
@@ -151,7 +153,6 @@ public class LoginPanel extends JPanel {
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────
-
     private void showError(String msg) {
         feedbackLabel.setForeground(new Color(240, 80, 80));
         feedbackLabel.setText(msg);
