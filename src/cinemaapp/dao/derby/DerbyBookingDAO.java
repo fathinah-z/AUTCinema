@@ -29,11 +29,10 @@ public class DerbyBookingDAO implements BookingDAO {
     // -----------------------------------------------------------------------
     // Write
     // -----------------------------------------------------------------------
-
     /**
      * Persists a complete booking (header + all items) atomically.
      *
-     * @param booking  the booking produced by the service layer
+     * @param booking the booking produced by the service layer
      * @param username the logged-in user who owns this booking
      */
     @Override
@@ -42,9 +41,9 @@ public class DerbyBookingDAO implements BookingDAO {
         conn.setAutoCommit(false);
         try {
             // 1. Insert Booking header
-            String bookingSql =
-                "INSERT INTO Booking (bookingCode, bookingDate, totalPrice, username) "
-                + "VALUES (?, ?, ?, ?)";
+            String bookingSql
+                    = "INSERT INTO Booking (bookingCode, bookingDate, totalPrice, username) "
+                    + "VALUES (?, ?, ?, ?)";
 
             try (PreparedStatement ps = conn.prepareStatement(bookingSql)) {
                 ps.setString(1, booking.getBookingCode());
@@ -55,9 +54,9 @@ public class DerbyBookingDAO implements BookingDAO {
             }
 
             // 2. Insert each BookingItem
-            String itemSql =
-                "INSERT INTO BookingItem (bookingCode, seatId, itemPrice, attendeeType) "
-                + "VALUES (?, ?, ?, ?)";
+            String itemSql
+                    = "INSERT INTO BookingItem (bookingCode, seatId, itemPrice, attendeeType) "
+                    + "VALUES (?, ?, ?, ?)";
 
             try (PreparedStatement ps = conn.prepareStatement(itemSql)) {
                 for (BookingItem item : booking.getBookingItems()) {
@@ -81,8 +80,8 @@ public class DerbyBookingDAO implements BookingDAO {
     }
 
     /**
-     * Deletes a booking and all its items transactionally.
-     * Items must be deleted first to satisfy the FK constraint.
+     * Deletes a booking and all its items transactionally. Items must be
+     * deleted first to satisfy the FK constraint.
      */
     @Override
     public void delete(String bookingCode) throws SQLException {
@@ -116,39 +115,38 @@ public class DerbyBookingDAO implements BookingDAO {
     // -----------------------------------------------------------------------
     // Read
     // -----------------------------------------------------------------------
-
     @Override
     public Booking findByBookingCode(String bookingCode) throws SQLException {
         // Step 1: find the booking header (also retrieves showtimeId via BookingItem join)
-        // The Booking model in P1 stores showtimeId; in the ERD showtimeId is embedded in
-        // BookingItem indirectly via seatId → ShowSeat → showtimeId.  For simplicity we
+        // the Booking model in P1 stores showtimeId; in the ERD showtimeId is embedded in
+        // bookingItem indirectly via seatId → ShowSeat → showtimeId.  For simplicity we
         // store the showtimeId on the Booking model by reading it from the first BookingItem.
-        String headerSql =
-            "SELECT b.bookingCode, b.bookingDate, b.totalPrice, "
-            + "       bi.seatId, bi.attendeeType, bi.itemPrice, "
-            + "       ss.showtimeId "
-            + "FROM Booking b "
-            + "JOIN BookingItem bi ON b.bookingCode = bi.bookingCode "
-            + "JOIN ShowSeat ss ON bi.seatId = ss.seatId "
-            + "WHERE b.bookingCode = ?";
+        String headerSql
+                = "SELECT b.bookingCode, b.bookingDate, b.totalPrice, "
+                + "       bi.seatId, bi.attendeeType, bi.itemPrice, "
+                + "       (SELECT ss2.showtimeId FROM ShowSeat ss2 "
+                + "        WHERE ss2.seatId = bi.seatId FETCH FIRST 1 ROWS ONLY) AS showtimeId "
+                + "FROM Booking b "
+                + "JOIN BookingItem bi ON b.bookingCode = bi.bookingCode "
+                + "WHERE b.bookingCode = ?";
 
         Booking booking = null;
 
         try (PreparedStatement ps = dbManager.getConnection().prepareStatement(headerSql)) {
-            ps.setString(1, bookingCode);
-            try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    if (booking == null) {
-                        String showtimeId = rs.getString("showtimeId");
-                        booking = new Booking(bookingCode, showtimeId);
-                    }
-                    String       seatId       = rs.getString("seatId");
-                    AttendeeType attendeeType = AttendeeType.valueOf(rs.getString("attendeeType"));
-                    double       itemPrice    = rs.getDouble("itemPrice");
-                    booking.addBookingItem(new BookingItem(seatId, attendeeType, itemPrice));
+        ps.setString(1, bookingCode);
+        try (ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                if (booking == null) {
+                    booking = new Booking(bookingCode, rs.getString("showtimeId"));
                 }
+                booking.addBookingItem(new BookingItem(
+                    rs.getString("seatId"),
+                    AttendeeType.valueOf(rs.getString("attendeeType")),
+                    rs.getDouble("itemPrice")
+                ));
             }
         }
+    }
 
         if (booking != null) {
             booking.calculateTotalPrice();

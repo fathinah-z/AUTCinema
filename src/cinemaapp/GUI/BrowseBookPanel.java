@@ -437,6 +437,7 @@ public class BrowseBookPanel extends JPanel {
             totalLabel.setText("Total: —");
             confirmBtn.setEnabled(false);
             loadMovies();   // refresh available seat counts
+            searchSeats();
         }
     }
 
