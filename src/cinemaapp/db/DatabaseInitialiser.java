@@ -159,7 +159,7 @@ public class DatabaseInitialiser {
             seedSeats(st, "S01", 'A', 'E', 10);
 
             // --- Seats for Screen S02 (rows A-D, 8 seats per row) ---
-            seedSeats(st, "S02", 'A', 'D', 8);
+            // seedSeats(st, "S02", 'A', 'D', 8);
 
             // --- Showtimes ---
             st.execute("INSERT INTO Showtime VALUES ('T01','2026-06-10 10:00:00',14.50,'S01','M01')");
@@ -171,11 +171,11 @@ public class DatabaseInitialiser {
 
             // --- ShowSeats (all seats start as AVAILABLE) ---
             seedShowSeats(st, "T01", "S01", 'A', 'E', 10);
-            seedShowSeats(st, "T02", "S01", 'A', 'E', 10);
+            //seedShowSeats(st, "T02", "S01", 'A', 'E', 10);
             seedShowSeats(st, "T03", "S02", 'A', 'D', 8);
-            seedShowSeats(st, "T04", "S01", 'A', 'E', 10);
-            seedShowSeats(st, "T05", "S02", 'A', 'D', 8);
-            seedShowSeats(st, "T06", "S01", 'A', 'E', 10);
+            //seedShowSeats(st, "T04", "S01", 'A', 'E', 10);
+            //seedShowSeats(st, "T05", "S02", 'A', 'D', 8);
+            //seedShowSeats(st, "T06", "S01", 'A', 'E', 10);
 
             conn.commit();
             System.out.println("Database seeded successfully.");

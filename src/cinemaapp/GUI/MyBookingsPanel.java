@@ -173,6 +173,7 @@ public class MyBookingsPanel extends JPanel {
         int row = bookingsTable.getSelectedRow();
         if (row < 0 || row >= loadedBookings.size()) return;
 
+        //
         Booking b = loadedBookings.get(row);
         StringBuilder sb = new StringBuilder();
         sb.append("Booking Code : ").append(b.getBookingCode()).append("\n");
@@ -182,6 +183,7 @@ public class MyBookingsPanel extends JPanel {
         try {
             Showtime st = showtimeDAO.findById(b.getShowtimeId());
             if (st != null) {
+                //
                 sb.append("Showtime     : ").append(st.getDateTime())
                   .append("  |  Screen ").append(st.getScreenId()).append("\n");
             }

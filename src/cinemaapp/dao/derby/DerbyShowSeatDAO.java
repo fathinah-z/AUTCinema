@@ -52,7 +52,7 @@ public class DerbyShowSeatDAO implements ShowSeatDAO {
             "UPDATE ShowSeat SET seatStatus = ? WHERE showtimeId = ? AND seatId = ?";
 
         try (PreparedStatement ps = dbManager.getConnection().prepareStatement(sql)) {
-            ps.setString(1, status.name());
+            ps.setString(1, status.toString());
             ps.setString(2, showtimeId);
             ps.setString(3, seatId);
             ps.executeUpdate();

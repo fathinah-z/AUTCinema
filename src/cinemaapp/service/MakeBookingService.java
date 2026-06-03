@@ -138,7 +138,6 @@ public class MakeBookingService {
         // Build booking
         String bookingCode = codeGenerator.generateUniqueCode(bookingRepo);
         Booking booking = new Booking(bookingCode, showtimeId);
-
         for (BookingItem item : cart) {
             // Validate R18 rule
             if (movie.getRating() == MovieRating.R18
@@ -147,6 +146,7 @@ public class MakeBookingService {
             }
 
             booking.addBookingItem(item);
+            // HERE
             showSeatRepo.updateSeatStatus(showtimeId, item.getSeatId(), SeatStatus.BOOKED);
         }
 

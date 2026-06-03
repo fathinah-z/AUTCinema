@@ -15,7 +15,7 @@ import java.sql.SQLException;
 public final class DatabaseManager {
 
     private static final String DB_URL =
-            "jdbc:derby:AUTCinemaDB;create=true;user=comp603;password=comp603";
+             "jdbc:derby:AUTCinemaDB2;create=true;user=comp603;password=comp603";
 
     // The one and only instance – created lazily on first access.
     private static DatabaseManager instance;
@@ -54,6 +54,7 @@ public final class DatabaseManager {
             // For multi-step transactions (e.g. booking) callers must disable
             // auto-commit themselves and commit/rollback explicitly.
             connection.setAutoCommit(true);
+            
         }
         return connection;
     }
