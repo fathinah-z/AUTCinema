@@ -11,13 +11,6 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Apache Derby implementation of {@link BookingDAO}.
- *
- * {@link #save} writes to both the Booking and BookingItem tables inside a
- * single transaction – either both writes succeed or both are rolled back,
- * preserving data integrity.
- */
 public class DerbyBookingDAO implements BookingDAO {
 
     private final DatabaseManager dbManager;
@@ -26,9 +19,7 @@ public class DerbyBookingDAO implements BookingDAO {
         this.dbManager = dbManager;
     }
 
-    // -----------------------------------------------------------------------
-    // Write
-    // -----------------------------------------------------------------------
+  
     /**
      * Persists a complete booking (header + all items) atomically.
      *
@@ -40,7 +31,7 @@ public class DerbyBookingDAO implements BookingDAO {
         Connection conn = dbManager.getConnection();
         conn.setAutoCommit(false);
         try {
-            // 1. Insert Booking header
+            // Insert Booking header
             String bookingSql
                     = "INSERT INTO Booking (bookingCode, bookingDate, totalPrice, username) "
                     + "VALUES (?, ?, ?, ?)";
@@ -53,7 +44,7 @@ public class DerbyBookingDAO implements BookingDAO {
                 ps.executeUpdate();
             }
 
-            // 2. Insert each BookingItem
+            // Insert each BookingItem
             String itemSql
                     = "INSERT INTO BookingItem (bookingCode, seatId, itemPrice, attendeeType) "
                     + "VALUES (?, ?, ?, ?)";
@@ -83,6 +74,7 @@ public class DerbyBookingDAO implements BookingDAO {
      * Deletes a booking and all its items transactionally. Items must be
      * deleted first to satisfy the FK constraint.
      */
+    
     @Override
     public void delete(String bookingCode) throws SQLException {
         Connection conn = dbManager.getConnection();
@@ -112,15 +104,9 @@ public class DerbyBookingDAO implements BookingDAO {
         }
     }
 
-    // -----------------------------------------------------------------------
-    // Read
-    // -----------------------------------------------------------------------
+    //read
     @Override
     public Booking findByBookingCode(String bookingCode) throws SQLException {
-        // Step 1: find the booking header (also retrieves showtimeId via BookingItem join)
-        // the Booking model in P1 stores showtimeId; in the ERD showtimeId is embedded in
-        // bookingItem indirectly via seatId → ShowSeat → showtimeId.  For simplicity we
-        // store the showtimeId on the Booking model by reading it from the first BookingItem.
         String headerSql
                 = "SELECT b.bookingCode, b.bookingDate, b.totalPrice, "
                 + "       bi.seatId, bi.attendeeType, bi.itemPrice, "

@@ -7,12 +7,11 @@ import java.sql.SQLException;
 import java.sql.Statement;
 
 /**
- * Creates all tables (if they do not already exist) and seeds initial data.
+ * Creates all tables and seeds initial data.
  *
  * Call {@link #initialise()} once at application start-up, after obtaining the
  * {@link DatabaseManager} instance.
  *
- * Schema mirrors the ERD exactly:
  *
  * <pre>
  *   Account      (username PK, password)
@@ -33,9 +32,7 @@ public class DatabaseInitialiser {
         this.dbManager = dbManager;
     }
 
-    /**
-     * Entry point – idempotent; safe to call every startup.
-     */
+    //entrypoint
     public void initialise() throws SQLException {
         createTables();
         if (isEmpty()) {
@@ -43,9 +40,7 @@ public class DatabaseInitialiser {
         }
     }
 
-    // -----------------------------------------------------------------------
-    // Table creation
-    // -----------------------------------------------------------------------
+    // table creation
     private void createTables() throws SQLException {
         Connection conn = dbManager.getConnection();
 
@@ -114,18 +109,13 @@ public class DatabaseInitialiser {
                     if (!"X0Y32".equals(e.getSQLState())) {
                         throw e;
                     }
-                    // else: table already exists, skip it
+                    //skip table if exits already
                 }
             }
         }
     }
 
-    // -----------------------------------------------------------------------
-    // Seed data check
-    // -----------------------------------------------------------------------
-    /**
-     * Returns true when the Movie table already has rows.
-     */
+    //seed data check
     private boolean isEmpty() throws SQLException {
         Connection conn = dbManager.getConnection();
         try (Statement st = conn.createStatement(); ResultSet rs = st.executeQuery("SELECT COUNT(*) FROM Movie")) {
@@ -134,9 +124,7 @@ public class DatabaseInitialiser {
         }
     }
 
-    // -----------------------------------------------------------------------
-    // Seed data
-    // -----------------------------------------------------------------------
+    //seed data
     private void seedData() throws SQLException {
         Connection conn = dbManager.getConnection();
         conn.setAutoCommit(false);

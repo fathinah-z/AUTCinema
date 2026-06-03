@@ -4,14 +4,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 
-/**
- * Singleton that manages the single embedded Apache Derby connection.
- *
- * Using the Singleton pattern guarantees only one Connection is active at a
- * time, which is correct for Derby Embedded (it does not support concurrent
- * connections from multiple JVMs, but a single shared connection within one
- * JVM is fine for a desktop application of this scale).
- */
+
 public final class DatabaseManager {
 
     private static final String DB_URL =
@@ -22,13 +15,10 @@ public final class DatabaseManager {
 
     private Connection connection;
 
-    // Private constructor enforces Singleton
     private DatabaseManager() {
         try {
-            // Load the embedded Derby driver (required for JDK 25 module path)
             Class.forName("org.apache.derby.iapi.jdbc.AutoloadedDriver");
         } catch (ClassNotFoundException e) {
-            // Driver may auto-load via ServiceLoader; ignore if not found here
         }
     }
 
@@ -60,7 +50,7 @@ public final class DatabaseManager {
     }
 
     /**
-     * Gracefully shuts down the embedded Derby engine.
+     * shuts down the embedded Derby engine.
      * Must be called once when the application exits.
      */
     public void shutdown() {

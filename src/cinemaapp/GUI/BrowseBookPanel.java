@@ -14,20 +14,7 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Browse & Book tab.
- *
- * Combines browsing (previously separate in the CLI) into one natural flow: 1.
- * Pick a movie from the left panel list 2. Pick a showtime from the dropdown 3.
- * Choose number of seats and attendee type per seat 4. Apply optional seat
- * filters 5. Click "Search Seats" — available seats appear 6. Select your seats
- * from the list 7. Click "Confirm & Pay"
- *
- * MVC role: View + Controller for the booking workflow. All business logic
- * stays in MakeBookingService and BrowsingService.
- *
- * Location: src/cinemaapp/gui/BrowseBookPanel.java
- */
+
 public class BrowseBookPanel extends JPanel {
 
     private final BrowsingService browsingService;
@@ -73,7 +60,7 @@ public class BrowseBookPanel extends JPanel {
         loadMovies();
     }
 
-    // ── UI construction ───────────────────────────────────────────────────────
+    //  UI  
     private void buildUI() {
         setLayout(new BorderLayout(8, 8));
         setBorder(new EmptyBorder(10, 10, 10, 10));
@@ -229,7 +216,7 @@ public class BrowseBookPanel extends JPanel {
         return row;
     }
 
-    // ── Data loading ──────────────────────────────────────────────────────────
+    // Data loading 
     private void loadMovies() {
         movieListModel.clear();
         allMovieDetails.clear();
@@ -248,7 +235,7 @@ public class BrowseBookPanel extends JPanel {
         }
     }
 
-    // ── Event handlers ────────────────────────────────────────────────────────
+    //  Event handlers
     private void onMovieSelected() {
         int idx = movieJList.getSelectedIndex();
         if (idx < 0 || idx >= allMovieDetails.size()) {
@@ -460,7 +447,7 @@ public class BrowseBookPanel extends JPanel {
             "Booking Confirmed ✅", JOptionPane.INFORMATION_MESSAGE);
 }
 
-    // ── Helpers ───────────────────────────────────────────────────────────────
+    //  Helpers 
     private JLabel sectionLabel(String text) {
         JLabel lbl = new JLabel(text);
         lbl.setFont(lbl.getFont().deriveFont(Font.BOLD, 12f));
