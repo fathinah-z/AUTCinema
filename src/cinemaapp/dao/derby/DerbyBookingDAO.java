@@ -33,14 +33,15 @@ public class DerbyBookingDAO implements BookingDAO {
         try {
             // Insert Booking header
             String bookingSql
-                    = "INSERT INTO Booking (bookingCode, bookingDate, totalPrice, username) "
-                    + "VALUES (?, ?, ?, ?)";
+                    = "INSERT INTO Booking (bookingCode, bookingDate, totalPrice, username, showtimeId) "
+                    + "VALUES (?, ?, ?, ?, ?)";
 
             try (PreparedStatement ps = conn.prepareStatement(bookingSql)) {
                 ps.setString(1, booking.getBookingCode());
                 ps.setDate(2, Date.valueOf(LocalDate.now()));
                 ps.setDouble(3, booking.getTotalPrice());
                 ps.setString(4, username);
+                ps.setString(5, booking.getShowtimeId());
                 ps.executeUpdate();
             }
 
@@ -108,10 +109,8 @@ public class DerbyBookingDAO implements BookingDAO {
     @Override
     public Booking findByBookingCode(String bookingCode) throws SQLException {
         String headerSql
-                = "SELECT b.bookingCode, b.bookingDate, b.totalPrice, "
-                + "       bi.seatId, bi.attendeeType, bi.itemPrice, "
-                + "       (SELECT ss2.showtimeId FROM ShowSeat ss2 "
-                + "        WHERE ss2.seatId = bi.seatId FETCH FIRST 1 ROWS ONLY) AS showtimeId "
+                = "SELECT b.bookingCode, b.bookingDate, b.totalPrice, b.showtimeId, "
+                + "       bi.seatId, bi.attendeeType, bi.itemPrice "
                 + "FROM Booking b "
                 + "JOIN BookingItem bi ON b.bookingCode = bi.bookingCode "
                 + "WHERE b.bookingCode = ?";
