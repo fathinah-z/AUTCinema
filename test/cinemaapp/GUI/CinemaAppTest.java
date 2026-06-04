@@ -8,6 +8,12 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import static org.junit.Assert.*;
+import java.time.LocalDateTime;
+import cinemaapp.service.CancelBookingService;
+import cinemaapp.model.Showtime;
+import cinemaapp.repository.ShowtimeRepository;
+import java.util.List;
+import java.util.ArrayList;
 
 public class CinemaAppTest {
 
@@ -90,5 +96,90 @@ public class CinemaAppTest {
     public void testMovieIsR18() {
         Movie m = new Movie("M2", "Restricted Film", MovieRating.R18, "Adults only", 90);
         assertEquals(MovieRating.R18, m.getRating());
+    }
+
+    @Test
+    public void testRefundEligibleWhenShowtimeMoreThan5DaysAway() {
+        // Showtime is 10 days from now — should be eligible
+        Showtime showtime = new Showtime("ST001", "M1", "SC1",
+                LocalDateTime.now().plusDays(10), 20.00);
+
+        ShowtimeRepository mockShowtimeRepo = new ShowtimeRepository() {
+            @Override
+            public Showtime findById(String id) {
+                return showtime;
+            }
+
+            @Override
+            public List<Showtime> findByMovieId(String movieId) {
+                return new ArrayList<>();
+            }
+        };
+
+        CancelBookingService service = new CancelBookingService(
+                null, null, mockShowtimeRepo);
+
+        Booking booking = new Booking("BK-TEST001", "ST001");
+        assertTrue("Should be eligible when showtime is 10 days away",
+                service.isRefundEligible(booking, LocalDateTime.now()));
+    }
+
+    @Test
+    public void testRefundNotEligibleWhenShowtimeWithin5Days() {
+        // Showtime is 2 days from now — should NOT be eligible
+        Showtime showtime = new Showtime("ST002", "M1", "SC1",
+                LocalDateTime.now().plusDays(2), 20.00);
+
+        ShowtimeRepository mockShowtimeRepo = new ShowtimeRepository() {
+            @Override
+            public Showtime findById(String id) {
+                return showtime;
+            }
+
+            @Override
+            public List<Showtime> findByMovieId(String movieId) {
+                return new ArrayList<>();
+            }
+        };
+
+        CancelBookingService service = new CancelBookingService(
+                null, null, mockShowtimeRepo);
+
+        Booking booking = new Booking("BK-TEST002", "ST002");
+        assertFalse("Should not be eligible when showtime is only 2 days away",
+                service.isRefundEligible(booking, LocalDateTime.now()));
+    }
+
+    @Test
+    public void testRefundNotEligibleForNullBooking() {
+        CancelBookingService service = new CancelBookingService(null, null, null);
+        assertFalse("Null booking should return false",
+                service.isRefundEligible(null, LocalDateTime.now()));
+    }
+
+    @Test
+    public void testRefundNotEligibleWhenShowtimeAlreadyPassed() {
+        // Showtime was yesterday — definitely not eligible
+        Showtime showtime = new Showtime("ST003", "M1", "SC1",
+                LocalDateTime.now().minusDays(1), 20.00);
+
+        ShowtimeRepository mockShowtimeRepo = new ShowtimeRepository() {
+            @Override
+            public Showtime findById(String id) {
+                return showtime;
+            }
+
+            @Override
+            public List<Showtime> findByMovieId(String movieId) {
+                return new ArrayList<>();
+            }
+        };
+
+        CancelBookingService service = new CancelBookingService(
+                null, null, mockShowtimeRepo);
+
+        Booking booking = new Booking("BK-TEST003", "ST003");
+        assertFalse("Should not be eligible when showtime has already passed",
+                service.isRefundEligible(booking, LocalDateTime.now()));
     }
 }
