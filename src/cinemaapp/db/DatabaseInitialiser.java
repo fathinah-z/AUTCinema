@@ -61,13 +61,13 @@ public class DatabaseInitialiser {
                 + "  screenId VARCHAR(10) NOT NULL PRIMARY KEY"
                 + ")",
                 "CREATE TABLE Seat ("
-                + "  seatId       VARCHAR(10)  NOT NULL PRIMARY KEY, "
+                + "  seatId       VARCHAR(20)  NOT NULL PRIMARY KEY, "
                 + "  row          CHAR(1)     NOT NULL, "
                 + "  number       INTEGER     NOT NULL, "
                 + "  nearAisle    INTEGER     NOT NULL, " // 0 / 1 for boolean
                 + "  isAccessible INTEGER     NOT NULL, "
                 + "  screenId     VARCHAR(10)  NOT NULL, "
-                + "  CONSTRAINT fk_seat_screen FOREIGN KEY (screenId) REFERENCES Screen(screenId)"
+                + "  CONSTRAINT fk_seat_screen FOREIGN KEY (screenId) REFERENCES Screen(screenId) "
                 + ")",
                 "CREATE TABLE Showtime ("
                 + "  showtimeId VARCHAR(10)   NOT NULL PRIMARY KEY, "
@@ -76,31 +76,31 @@ public class DatabaseInitialiser {
                 + "  screenId   VARCHAR(10)   NOT NULL, "
                 + "  movieId    VARCHAR(10)   NOT NULL, "
                 + "  CONSTRAINT fk_showtime_screen FOREIGN KEY (screenId) REFERENCES Screen(screenId), "
-                + "  CONSTRAINT fk_showtime_movie  FOREIGN KEY (movieId)  REFERENCES Movie(movieId)"
+                + "  CONSTRAINT fk_showtime_movie  FOREIGN KEY (movieId)  REFERENCES Movie(movieId) "
                 + ")",
                 "CREATE TABLE ShowSeat ("
-                + "  seatId      VARCHAR(10)  NOT NULL, "
+                + "  seatId      VARCHAR(20)  NOT NULL, "
                 + "  showtimeId  VARCHAR(10)  NOT NULL, "
                 + "  seatStatus  VARCHAR(20) NOT NULL, "
                 + "  PRIMARY KEY (seatId, showtimeId), "
                 + "  CONSTRAINT fk_showseat_seat     FOREIGN KEY (seatId)     REFERENCES Seat(seatId), "
-                + "  CONSTRAINT fk_showseat_showtime FOREIGN KEY (showtimeId) REFERENCES Showtime(showtimeId)"
+                + "  CONSTRAINT fk_showseat_showtime FOREIGN KEY (showtimeId) REFERENCES Showtime(showtimeId) "
                 + ")",
                 "CREATE TABLE Booking ("
                 + "  bookingCode  VARCHAR(20) NOT NULL PRIMARY KEY, "
                 + "  bookingDate  DATE        NOT NULL, "
                 + "  totalPrice   FLOAT       NOT NULL, "
                 + "  username     VARCHAR(50) NOT NULL, "
-                + "  CONSTRAINT fk_booking_account FOREIGN KEY (username) REFERENCES Account(username)"
+                + "  CONSTRAINT fk_booking_account FOREIGN KEY (username) REFERENCES Account(username) "
                 + ")",
                 "CREATE TABLE BookingItem ("
                 + "  bookingCode  VARCHAR(20) NOT NULL, "
-                + "  seatId       VARCHAR(10)  NOT NULL, "
+                + "  seatId       VARCHAR(20)  NOT NULL, "
                 + "  itemPrice    FLOAT       NOT NULL, "
                 + "  attendeeType VARCHAR(20) NOT NULL, "
                 + "  PRIMARY KEY (bookingCode, seatId), "
                 + "  CONSTRAINT fk_item_booking FOREIGN KEY (bookingCode) REFERENCES Booking(bookingCode), "
-                + "  CONSTRAINT fk_item_seat    FOREIGN KEY (seatId)      REFERENCES Seat(seatId)"
+                + "  CONSTRAINT fk_item_seat    FOREIGN KEY (seatId)     REFERENCES Seat(seatId) "
                 + ")"
             }) {
                 try {
@@ -135,36 +135,46 @@ public class DatabaseInitialiser {
             st.execute("INSERT INTO Account VALUES ('guest', 'guest')");
 
             //  Movies 
-            st.execute("INSERT INTO Movie VALUES ('M01','Interstellar','PG','A team of explorers travel through a wormhole in space.',169)");
-            st.execute("INSERT INTO Movie VALUES ('M02','The Dark Knight','M','Batman fights the Joker, a criminal mastermind.',152)");
-            st.execute("INSERT INTO Movie VALUES ('M03','Parasite','R16','A poor family scheme to become employed by a wealthy family.',132)");
-            st.execute("INSERT INTO Movie VALUES ('M04','Toy Story','G','A cowboy doll is threatened by a space action figure.',81)");
-            st.execute("INSERT INTO Movie VALUES ('M05','Inception','M','A thief who steals secrets through dreams is given a heist task.',148)");
+            /*
+            M001|Project Hail Mary|PG|A science teacher wakes up alone on a spaceship. As his memory returns, he uncovers a mission to stop a mysterious substance killing Earth's sun and that an unexpected friendship may be the key.|157
+            M002|The Handmaiden|R18|In 1930s Korea, a girl is hired as a handmaiden to a Japanese heiress who lives a secluded life on a countryside estate. But the maid has a secret: She is a pickpocket recruited by a swindler to help seduce the Lady and steal her fortune.|145
+            M003|Forrest Gump|R13|The history of the United States from the 1950s to the '70s unfolds from the perspective of an Alabama man with an IQ of 75, who yearns to be reunited with his childhood sweetheart.|142
+            M004|Fight Club|R16|An insomniac office worker and a devil-may-care soap maker form an underground fight club that evolves into much more.|139
+             */
+            st.execute("INSERT INTO Movie VALUES ('M001','Project Hail Mary','PG','A science teacher wakes up alone on a spaceship. As his memory returns, he uncovers a mission to stop a mysterious substance killing the Sun and that an unexpected friendship may be the key.',157)");
+            st.execute("INSERT INTO Movie VALUES ('M002','The Handmaiden','R18','In 1930s Korea, a girl is hired as a handmaiden to a Japanese heiress who lives a secluded life on a countryside estate. But the maid has a secret: She is a pickpocket recruited by a swindler to help seduce the Lady and steal her fortune.',145)");
+            st.execute("INSERT INTO Movie VALUES ('M003','Forrest Gump','R13','The history of the United States from the 1950s to the 1970s unfolds from the perspective of an Alabama man with an IQ of 75, who yearns to be reunited with his childhood sweetheart.',142)");
+            st.execute("INSERT INTO Movie VALUES ('M004','Fight Club','R16','An insomniac office worker and a devil-may-care soap maker form an underground fight club that evolves into much more.',139)");
 
             //  Screens 
-            st.execute("INSERT INTO Screen VALUES ('S01')");
-            st.execute("INSERT INTO Screen VALUES ('S02')");
+            st.execute("INSERT INTO Screen VALUES ('SC001')");
+            st.execute("INSERT INTO Screen VALUES ('SC002')");
 
             //  Seats: S01 = rows A-E, 10 per row | S02 = rows A-D, 8 per row 
-            seedSeats(st, "S01", 'A', 'E', 10);
-            seedSeats(st, "S02", 'A', 'D', 8);
+            seedSeats(st, "SC001", 'A', 'E', 10);
+            seedSeats(st, "SC002", 'A', 'D', 8);
 
             //  Showtimes 
-            // T01, T02, T04, T06 use S01 | T03, T05 use S02
-            st.execute("INSERT INTO Showtime VALUES ('T01','2026-06-10 10:00:00',14.50,'S01','M01')");
-            st.execute("INSERT INTO Showtime VALUES ('T02','2026-06-10 14:30:00',14.50,'S01','M01')");
-            st.execute("INSERT INTO Showtime VALUES ('T03','2026-06-11 18:00:00',16.00,'S02','M02')");
-            st.execute("INSERT INTO Showtime VALUES ('T04','2026-06-12 11:00:00',12.00,'S01','M03')");
-            st.execute("INSERT INTO Showtime VALUES ('T05','2026-06-13 15:00:00',10.00,'S02','M04')");
-            st.execute("INSERT INTO Showtime VALUES ('T06','2026-06-14 20:00:00',16.00,'S01','M05')");
+            /*
+            ST001|M001|SC001|2026-08-19T15:00|25
+            ST002|M003|SC002|2026-08-19T15:00|25
+            ST003|M002|SC001|2026-08-20T13:00|22
+            ST004|M001|SC001|2026-08-20T18:00|30
+            ST005|M004|SC002|2026-08-21T12:30|22
+            */
+            st.execute("INSERT INTO Showtime VALUES ('ST001','2026-06-10 10:00:00',25,'SC001','M001')");
+            st.execute("INSERT INTO Showtime VALUES ('ST002','2026-06-10 14:30:00',25,'SC002','M003')");
+            st.execute("INSERT INTO Showtime VALUES ('ST003','2026-06-11 18:00:00',22,'SC001','M002')");
+            st.execute("INSERT INTO Showtime VALUES ('ST004','2026-06-12 11:00:00',30,'SC001','M001')");
+            st.execute("INSERT INTO Showtime VALUES ('ST005','2026-06-13 15:00:00',22,'SC002','M004')");
 
             //  ShowSeats: every showtime gets all seats from its screen as AVAILABLE 
-            seedShowSeats(st, "T01", "S01", 'A', 'E', 10);
-            seedShowSeats(st, "T02", "S01", 'A', 'E', 10);
-            seedShowSeats(st, "T03", "S02", 'A', 'D', 8);
-            seedShowSeats(st, "T04", "S01", 'A', 'E', 10);
-            seedShowSeats(st, "T05", "S02", 'A', 'D', 8);
-            seedShowSeats(st, "T06", "S01", 'A', 'E', 10);
+            // ST001, ST003, ST004 use SC001 | ST002, ST005 use SC002
+            seedShowSeats(st, "ST001",  "SC001", 'A', 'E', 10);
+            seedShowSeats(st, "ST002",  "SC002", 'A', 'D', 8);
+            seedShowSeats(st, "ST003",  "SC001", 'A', 'E', 10);
+            seedShowSeats(st, "ST004",  "SC001", 'A', 'E', 10);
+            seedShowSeats(st, "ST005",  "SC002", 'A', 'D', 8);
 
             conn.commit();
             System.out.println("Database seeded successfully.");
@@ -181,26 +191,28 @@ public class DatabaseInitialiser {
      * accessible logic mirrors {@code FileScreenRepository.buildScreen()}.
      */
     private void seedSeats(Statement st, String screenId,
-                       char firstRow, char lastRow,
-                       int seatsPerRow) throws SQLException {
-    int middle = seatsPerRow / 2;
-    for (char row = firstRow; row <= lastRow; row++) {
-        for (int i = 1; i <= seatsPerRow; i++) {
-            String seatId = row + String.format("%02d", i);
-            int nearAisle  = (i==1 || i==middle || i==middle+1 || i==seatsPerRow) ? 1 : 0;
-            int accessible = (row==lastRow
-                    && (i==middle-1 || i==middle || i==middle+1 || i==middle+2)) ? 1 : 0;
-            try {
-                st.execute(String.format(
-                    "INSERT INTO Seat VALUES ('%s','%c',%d,%d,%d,'%s')",
-                    seatId, row, i, nearAisle, accessible, screenId));
-            } catch (SQLException e) {
-                if (!"23505".equals(e.getSQLState()) && !"23000".equals(e.getSQLState())) throw e;
-                // duplicate key — seat already exists, skip it
+            char firstRow, char lastRow,
+            int seatsPerRow) throws SQLException {
+        int middle = seatsPerRow / 2;
+        for (char row = firstRow; row <= lastRow; row++) {
+            for (int i = 1; i <= seatsPerRow; i++) {
+                String seatId = screenId+"-"+row + String.format("%02d", i);
+                int nearAisle = (i == 1 || i == middle || i == middle + 1 || i == seatsPerRow) ? 1 : 0;
+                int accessible = (row == lastRow
+                        && (i == middle - 1 || i == middle || i == middle + 1 || i == middle + 2)) ? 1 : 0;
+                try {
+                    st.execute(String.format(
+                            "INSERT INTO Seat VALUES ('%s','%c',%d,%d,%d,'%s')",
+                            seatId, row, i, nearAisle, accessible, screenId));
+                } catch (SQLException e) {
+                    if (!"23505".equals(e.getSQLState()) && !"23000".equals(e.getSQLState())) {
+                        throw e;
+                    }
+                    // duplicate key — seat already exists, skip it
+                }
             }
         }
     }
-}
 
     /**
      * Inserts a ShowSeat row (AVAILABLE) for every seat in a showtime.
@@ -211,9 +223,9 @@ public class DatabaseInitialiser {
             int seatsPerRow) throws SQLException {
         for (char row = firstRow; row <= lastRow; row++) {
             for (int i = 1; i <= seatsPerRow; i++) {
-                String seatId = row + String.format("%02d", i);
+                String seatId = screenId+"-"+row + String.format("%02d", i);
                 st.execute(String.format(
-                        "INSERT INTO ShowSeat VALUES ('%s','%s','AVAILABLE')",
+                        "INSERT INTO ShowSeat VALUES ('%s', '%s','AVAILABLE')",
                         seatId, showtimeId));
             }
         }
