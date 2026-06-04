@@ -302,6 +302,7 @@ public class BrowseBookPanel extends JPanel {
         for (int i = 0; i < count; i++) {
             attendeePanel.add(new JLabel("Seat " + (i + 1) + ":"));
             JComboBox<AttendeeType> combo = new JComboBox<>(AttendeeType.values());
+            combo.addActionListener(e -> updateTotal());
             attendeeCombos.add(combo);
             attendeePanel.add(combo);
         }
@@ -364,6 +365,7 @@ public class BrowseBookPanel extends JPanel {
             return;
         }
 
+        int required = (int) numSeatsSpinner.getValue();
         double total = 0;
         for (int i = 0; i < indices.length && i < attendeeCombos.size(); i++) {
             AttendeeType type = (AttendeeType) attendeeCombos.get(i).getSelectedItem();
@@ -372,9 +374,8 @@ public class BrowseBookPanel extends JPanel {
         }
 
         totalLabel.setText(String.format(
-                "Total: $%.2f  (%d seat(s) selected)", total, indices.length));
+                "Total: $%.2f  (%d/%d seat(s) selected)", total, indices.length, required));
 
-        int required = (int) numSeatsSpinner.getValue();
         confirmBtn.setEnabled(indices.length == required);
     }
 
