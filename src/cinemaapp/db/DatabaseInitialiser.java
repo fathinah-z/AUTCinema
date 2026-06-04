@@ -91,7 +91,9 @@ public class DatabaseInitialiser {
                 + "  bookingDate  DATE        NOT NULL, "
                 + "  totalPrice   FLOAT       NOT NULL, "
                 + "  username     VARCHAR(50) NOT NULL, "
-                + "  CONSTRAINT fk_booking_account FOREIGN KEY (username) REFERENCES Account(username) "
+                + "  showtimeId  VARCHAR(10) NOT NULL, "
+                + "  CONSTRAINT fk_booking_account FOREIGN KEY (username) REFERENCES Account(username), "
+                + "  CONSTRAINT fk_item_showtime    FOREIGN KEY (showtimeId) REFERENCES Showtime(showtimeId) "
                 + ")",
                 "CREATE TABLE BookingItem ("
                 + "  bookingCode  VARCHAR(20) NOT NULL, "
