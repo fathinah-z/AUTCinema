@@ -33,6 +33,7 @@ public class BrowseBookPanel extends JPanel {
     private JTextArea detailsArea;
     private JComboBox<String> showtimeCombo;
     private JSpinner numSeatsSpinner;
+    private JLabel ratingWarningLabel;
     private JPanel attendeePanel;       // rebuilt on seat count change
     private List<JComboBox<AttendeeType>> attendeeCombos = new ArrayList<>();
 
@@ -134,6 +135,12 @@ public class BrowseBookPanel extends JPanel {
 
         // Attendee types
         p.add(sectionLabel("Attendee Type per Seat"));
+        ratingWarningLabel = new JLabel();
+        ratingWarningLabel.setForeground(new Color(180, 0, 0));
+        ratingWarningLabel.setFont(ratingWarningLabel.getFont().deriveFont(Font.BOLD, 12f));
+        ratingWarningLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        ratingWarningLabel.setVisible(false);
+        p.add(ratingWarningLabel);
         attendeePanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 4));
         attendeePanel.setAlignmentX(Component.LEFT_ALIGNMENT);
         p.add(attendeePanel);
@@ -268,6 +275,14 @@ public class BrowseBookPanel extends JPanel {
         totalLabel.setText("Total: —");
         confirmBtn.setEnabled(false);
         rebuildAttendeeCombos();
+        
+        String warning = makeBookingService.getWarningByRating(m.getRating());
+        if (warning != null) {
+            ratingWarningLabel.setText("<html>" + warning.replace("\n", "<br>") + "</html>");
+            ratingWarningLabel.setVisible(true);
+        } else {
+            ratingWarningLabel.setVisible(false);
+        }
     }
 
     private void onShowtimeSelected() {
@@ -296,7 +311,7 @@ public class BrowseBookPanel extends JPanel {
 
     private void searchSeats() {
         onShowtimeSelected();
-        
+
         if (selectedShowInfo == null) {
             JOptionPane.showMessageDialog(this, "Please select a movie and showtime first.");
             return;
