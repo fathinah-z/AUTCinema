@@ -16,57 +16,37 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * My Bookings tab.
- *
- * BUGS FIXED from previous version:
- *
- *   BUG 1 — Wrong method name called from MainFrame:
- *     Was:  myBookings::refresh
- *     Fix:  method is named loadBookings(), not refresh().
- *     The method is public so MainFrame can pass it as a Runnable callback.
- *
- *   BUG 2 — BookingItem.getShowtimeId() does not exist:
- *     BookingItem only has getSeatId(), getAttendeeType(), getItemPrice().
- *     The showtimeId lives on Booking itself (booking.getShowtimeId()).
- *     Was:  booking.getBookingItems().get(0).getShowtimeId()
- *     Fix:  booking.getShowtimeId()
- *
- *   BUG 3 — MovieDAO.findById() and ShowtimeDAO.findById() declare
- *     throws SQLException but the catch in downloadPDF() only caught
- *     a generic Exception after the try block — meaning SQL exceptions
- *     from the DAO calls were not caught at the right level.
- *     Fix:  wrap each DAO call in its own try-catch inside the resolve block.
- */
 public class MyBookingsPanel extends JPanel {
 
-    private final BookingDAO  bookingDAO;
-    private final MovieDAO    movieDAO;
+    private final BookingDAO bookingDAO;
+    private final MovieDAO movieDAO;
     private final ShowtimeDAO showtimeDAO;
-    private final String      username;
+    private final String username;
 
     private DefaultTableModel tableModel;
-    private JTable            bookingsTable;
-    private JTextArea         detailArea;
+    private JTable bookingsTable;
+    private JTextArea detailArea;
 
     // Parallel list — same order as table rows
     private final List<Booking> loadedBookings = new ArrayList<>();
+    // Parallel list of movie titles per row (resolved at load time)
+    private final List<String> loadedMovieTitles = new ArrayList<>();
 
     public MyBookingsPanel(BookingDAO bookingDAO,
-                           MovieDAO movieDAO,
-                           ShowtimeDAO showtimeDAO,
-                           String username) {
-        this.bookingDAO  = bookingDAO;
-        this.movieDAO    = movieDAO;
+            MovieDAO movieDAO,
+            ShowtimeDAO showtimeDAO,
+            String username) {
+        this.bookingDAO = bookingDAO;
+        this.movieDAO = movieDAO;
         this.showtimeDAO = showtimeDAO;
-        this.username    = username;
+        this.username = username;
         buildUI();
         loadBookings();
     }
 
-    // ── UI ────────────────────────────────────────────────────────────────────
-
     private void buildUI() {
+        UIManager.put("Button.foreground", Color.BLACK);
+        UIManager.put("Button.disabledForeground", Color.GRAY);
         setLayout(new BorderLayout(8, 8));
         setBorder(new EmptyBorder(12, 14, 12, 14));
 
@@ -76,26 +56,31 @@ public class MyBookingsPanel extends JPanel {
         heading.setFont(heading.getFont().deriveFont(Font.BOLD, 14f));
         JButton refreshBtn = new JButton("↻ Refresh");
         refreshBtn.addActionListener(e -> loadBookings());
-        header.add(heading,    BorderLayout.WEST);
+        header.add(heading, BorderLayout.WEST);
         header.add(refreshBtn, BorderLayout.EAST);
         add(header, BorderLayout.NORTH);
 
-        // Bookings table
-        String[] cols = {"Booking Code", "Date Booked", "Showtime", "Seats", "Total Paid"};
+        // Bookings table — now includes Movie column
+        String[] cols = {"Booking Code", "Movie", "Date Booked", "Showtime", "Seats", "Total Paid"};
         tableModel = new DefaultTableModel(cols, 0) {
             @Override
-            public boolean isCellEditable(int r, int c) { return false; }
+            public boolean isCellEditable(int r, int c) {
+                return false;
+            }
         };
         bookingsTable = new JTable(tableModel);
         bookingsTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         bookingsTable.setRowHeight(22);
         bookingsTable.getColumnModel().getColumn(0).setPreferredWidth(130);
-        bookingsTable.getColumnModel().getColumn(1).setPreferredWidth(160);
-        bookingsTable.getColumnModel().getColumn(2).setPreferredWidth(200);
-        bookingsTable.getColumnModel().getColumn(3).setPreferredWidth(70);
-        bookingsTable.getColumnModel().getColumn(4).setPreferredWidth(90);
+        bookingsTable.getColumnModel().getColumn(1).setPreferredWidth(180);
+        bookingsTable.getColumnModel().getColumn(2).setPreferredWidth(120);
+        bookingsTable.getColumnModel().getColumn(3).setPreferredWidth(180);
+        bookingsTable.getColumnModel().getColumn(4).setPreferredWidth(70);
+        bookingsTable.getColumnModel().getColumn(5).setPreferredWidth(90);
         bookingsTable.getSelectionModel().addListSelectionListener(e -> {
-            if (!e.getValueIsAdjusting()) showSelectedDetails();
+            if (!e.getValueIsAdjusting()) {
+                showSelectedDetails();
+            }
         });
 
         // Detail area under the table
@@ -113,26 +98,22 @@ public class MyBookingsPanel extends JPanel {
         split.setResizeWeight(0.55);
         add(split, BorderLayout.CENTER);
 
-        // PDF button
-        JButton pdfBtn = new JButton("⬇  Download Ticket");
-        pdfBtn.setFont(pdfBtn.getFont().deriveFont(Font.BOLD, 13f));
-        pdfBtn.setBackground(new Color(60, 110, 180));
-        pdfBtn.setForeground(Color.WHITE);
-        pdfBtn.setFocusPainted(false);
+        //PDF button
+        JButton pdfBtn = new JButton("<html><span style='color:black;font-weight:bold'>⬇  Download Ticket</span></html>");
+        pdfBtn.setBackground(new Color(220, 220, 220));
+        pdfBtn.setOpaque(true);
         pdfBtn.addActionListener(e -> downloadTicket());
         add(pdfBtn, BorderLayout.SOUTH);
     }
 
-    // ── Data ──────────────────────────────────────────────────────────────────
-
     /**
      * Public so MainFrame can pass this as a Runnable callback:
-     *   myBookings::loadBookings
-     * Called after a booking is made or cancelled.
+     * myBookings::loadBookings
      */
     public void loadBookings() {
         tableModel.setRowCount(0);
         loadedBookings.clear();
+        loadedMovieTitles.clear();
         detailArea.setText("");
 
         try {
@@ -142,15 +123,27 @@ public class MyBookingsPanel extends JPanel {
 
                 // Resolve showtime date for the table (non-fatal if it fails)
                 String showtimeDisplay = b.getShowtimeId();
+                String movieTitle = "Unknown";
                 try {
                     Showtime st = showtimeDAO.findById(b.getShowtimeId());
                     if (st != null) {
                         showtimeDisplay = st.getDateTime().toString();
+                        try {
+                            Movie m = movieDAO.findById(st.getMovieId());
+                            if (m != null) {
+                                movieTitle = m.getTitle();
+                            }
+                        } catch (SQLException ignored) {
+                        }
                     }
-                } catch (SQLException ignored) {}
+                } catch (SQLException ignored) {
+                }
+
+                loadedMovieTitles.add(movieTitle);
 
                 tableModel.addRow(new Object[]{
                     b.getBookingCode(),
+                    movieTitle,
                     b.getBookingDate(),
                     showtimeDisplay,
                     b.getBookingItems().size() + " seat(s)",
@@ -167,34 +160,35 @@ public class MyBookingsPanel extends JPanel {
         }
     }
 
-    // ── Interaction ───────────────────────────────────────────────────────────
-
     private void showSelectedDetails() {
         int row = bookingsTable.getSelectedRow();
-        if (row < 0 || row >= loadedBookings.size()) return;
+        if (row < 0 || row >= loadedBookings.size()) {
+            return;
+        }
 
-        //
         Booking b = loadedBookings.get(row);
+        String movieTitle = (row < loadedMovieTitles.size()) ? loadedMovieTitles.get(row) : "Unknown";
+
         StringBuilder sb = new StringBuilder();
         sb.append("Booking Code : ").append(b.getBookingCode()).append("\n");
+        sb.append("Movie        : ").append(movieTitle).append("\n");
         sb.append("Booked On    : ").append(b.getBookingDate()).append("\n");
 
-        // FIX BUG 2: showtimeId is on Booking, not BookingItem
         try {
             Showtime st = showtimeDAO.findById(b.getShowtimeId());
             if (st != null) {
-                //
                 sb.append("Showtime     : ").append(st.getDateTime())
-                  .append("  |  Screen ").append(st.getScreenId()).append("\n");
+                        .append("  |  Screen ").append(st.getScreenId()).append("\n");
             }
-        } catch (SQLException ignored) {}
+        } catch (SQLException ignored) {
+        }
 
         sb.append("\nSeats:\n");
         for (BookingItem item : b.getBookingItems()) {
             sb.append("  Seat ").append(item.getSeatId())
-              .append("  [").append(item.getAttendeeType()).append("]")
-              .append("  $").append(String.format("%.2f", item.getItemPrice()))
-              .append("\n");
+                    .append("  [").append(item.getAttendeeType()).append("]")
+                    .append("  $").append(String.format("%.2f", item.getItemPrice()))
+                    .append("\n");
         }
         sb.append(String.format("\nTotal Paid   : $%.2f", b.getTotalPrice()));
         detailArea.setText(sb.toString());
@@ -211,32 +205,38 @@ public class MyBookingsPanel extends JPanel {
 
         Booking booking = loadedBookings.get(row);
 
-        // FIX BUG 2: get showtimeId from Booking, not from BookingItem
-        String movieTitle   = "AUT Cinema";
+        String movieTitle = (row < loadedMovieTitles.size()) ? loadedMovieTitles.get(row) : "AUT Cinema";
         String showtimeInfo = "";
 
         try {
-            // showtimeId is a field on Booking itself
             Showtime st = showtimeDAO.findById(booking.getShowtimeId());
             if (st != null) {
                 showtimeInfo = st.getDateTime() + "  |  Screen " + st.getScreenId();
-                // FIX BUG 3: MovieDAO.findById() throws SQLException — catch it here
-                try {
-                    Movie m = movieDAO.findById(st.getMovieId());
-                    if (m != null) movieTitle = m.getTitle();
-                } catch (SQLException ignored) {}
+                if (movieTitle.equals("Unknown") || movieTitle.equals("AUT Cinema")) {
+                    try {
+                        Movie m = movieDAO.findById(st.getMovieId());
+                        if (m != null) {
+                            movieTitle = m.getTitle();
+                        }
+                    } catch (SQLException ignored) {
+                    }
+                }
             }
-        } catch (SQLException ignored) {}
-        // Non-fatal — ticket still generates with placeholder text if lookups fail
+        } catch (SQLException ignored) {
+        }
 
         // Ask where to save
         JFileChooser chooser = new JFileChooser();
         chooser.setDialogTitle("Save Ticket");
         chooser.setSelectedFile(new File(booking.getBookingCode() + "_ticket.html"));
-        if (chooser.showSaveDialog(this) != JFileChooser.APPROVE_OPTION) return;
+        if (chooser.showSaveDialog(this) != JFileChooser.APPROVE_OPTION) {
+            return;
+        }
 
         String path = chooser.getSelectedFile().getAbsolutePath();
-        if (!path.endsWith(".html") && !path.endsWith(".pdf")) path += ".html";
+        if (!path.endsWith(".html") && !path.endsWith(".pdf")) {
+            path += ".html";
+        }
 
         try {
             new TicketPDFGenerator().generate(booking, movieTitle, showtimeInfo, path);

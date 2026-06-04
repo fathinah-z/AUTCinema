@@ -14,23 +14,7 @@ import java.awt.*;
  * Uses CardLayout to switch between: "login" card → LoginPanel (shown on
  * startup) "main" card → JTabbedPane with three tabs
  *
- * BUGS FIXED vs the previous version handed to us:
- *
- * 1. Package was cinemaapp.GUI (capital G) — Java packages are case-sensitive.
- * Every other GUI file is in cinemaapp.gui (lowercase), so NetBeans would
- * refuse to compile. Fixed to cinemaapp.gui.
- *
- * 2. myBookings::refresh — MyBookingsPanel has no method called refresh(). The
- * public method is loadBookings(). Fixed both call sites.
- *
- * 3. Logout loop used instanceof LoginPanel to decide which child to remove.
- * That check silently fails if the class is loaded from a different classloader
- * context and always removes the wrong card. Fixed by storing mainCard as a
- * field and calling root.remove(mainCard) directly.
- *
- * 4. mainCard was a local variable inside onLogin(), so onLogout() could never
- * reach it. Fixed by promoting it to a private field.
- */
+*/
 public class MainFrame extends JFrame {
 
     private static final String CARD_LOGIN = "login";
@@ -95,7 +79,9 @@ public class MainFrame extends JFrame {
                 browsingService, makeBookingService, account.getUsername());
 
         CancelPanel cancelPanel = new CancelPanel(
-                cancelService, bookingRepo);
+                cancelService, bookingRepo,
+                factory.getMovieDAO(),
+                factory.getShowtimeDAO());
 
         JTabbedPane tabs = new JTabbedPane();
         tabs.setFont(tabs.getFont().deriveFont(Font.PLAIN, 13f));

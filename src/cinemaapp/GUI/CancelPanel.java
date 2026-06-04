@@ -1,7 +1,11 @@
 package cinemaapp.GUI;
 
+import cinemaapp.dao.MovieDAO;
+import cinemaapp.dao.ShowtimeDAO;
 import cinemaapp.model.Booking;
 import cinemaapp.model.BookingItem;
+import cinemaapp.model.Movie;
+import cinemaapp.model.Showtime;
 import cinemaapp.repository.DbBookingRepository;
 import cinemaapp.service.CancelBookingService;
 
@@ -9,36 +13,37 @@ import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.TitledBorder;
 import java.awt.*;
+import java.sql.SQLException;
 import java.time.LocalDateTime;
 
-/**
- * Cancel Booking tab.
- *
- * User types their booking code → system shows details + refund status
- * → user clicks Confirm Cancellation.
- *
- * Location: src/cinemaapp/gui/CancelPanel.java
- */
 public class CancelPanel extends JPanel {
 
     private final CancelBookingService cancelService;
-    private final DbBookingRepository  bookingRepo;
+    private final DbBookingRepository bookingRepo;
+    private final MovieDAO movieDAO;
+    private final ShowtimeDAO showtimeDAO;
 
     private JTextField codeField;
-    private JTextArea  detailsArea;
-    private JLabel     refundLabel;
-    private JButton    confirmCancelBtn;
+    private JTextArea detailsArea;
+    private JLabel refundLabel;
+    private JButton confirmCancelBtn;
 
     private Booking foundBooking;
 
     public CancelPanel(CancelBookingService cancelService,
-                       DbBookingRepository bookingRepo) {
+            DbBookingRepository bookingRepo,
+            MovieDAO movieDAO,
+            ShowtimeDAO showtimeDAO) {
         this.cancelService = cancelService;
-        this.bookingRepo   = bookingRepo;
+        this.bookingRepo = bookingRepo;
+        this.movieDAO = movieDAO;
+        this.showtimeDAO = showtimeDAO;
         buildUI();
     }
 
     private void buildUI() {
+        UIManager.put("Button.foreground", Color.BLACK);
+        UIManager.put("Button.disabledForeground", Color.GRAY);
         setLayout(new BorderLayout(10, 10));
         setBorder(new EmptyBorder(20, 30, 20, 30));
 
@@ -67,16 +72,15 @@ public class CancelPanel extends JPanel {
         centrePanel.add(new JScrollPane(detailsArea), BorderLayout.CENTER);
         centrePanel.add(refundLabel, BorderLayout.SOUTH);
 
-        // Bottom: cancel button
-        confirmCancelBtn = new JButton("✕  Confirm Cancellation");
+        //cancel button
+        confirmCancelBtn = new JButton("<html><span style='color:black;font-weight:bold'>✕  Confirm Cancellation</span></html>");
         confirmCancelBtn.setEnabled(false);
-        confirmCancelBtn.setFont(confirmCancelBtn.getFont().deriveFont(Font.BOLD, 13f));
-        confirmCancelBtn.setBackground(new Color(190, 40, 40));
-        confirmCancelBtn.setForeground(Color.WHITE);
+        confirmCancelBtn.setBackground(new Color(220, 220, 220));
+        confirmCancelBtn.setOpaque(true);
         confirmCancelBtn.addActionListener(e -> handleCancel());
 
-        add(topRow,          BorderLayout.NORTH);
-        add(centrePanel,     BorderLayout.CENTER);
+        add(topRow, BorderLayout.NORTH);
+        add(centrePanel, BorderLayout.CENTER);
         add(confirmCancelBtn, BorderLayout.SOUTH);
     }
 
@@ -96,16 +100,38 @@ public class CancelPanel extends JPanel {
             return;
         }
 
-        // Show booking details
+        // Resolve movie title and showtime info
+        String movieTitle = "Unknown";
+        String showtimeDisplay = "";
+        try {
+            Showtime st = showtimeDAO.findById(foundBooking.getShowtimeId());
+            if (st != null) {
+                showtimeDisplay = st.getDateTime() + "  |  Screen " + st.getScreenId();
+                try {
+                    Movie m = movieDAO.findById(st.getMovieId());
+                    if (m != null) {
+                        movieTitle = m.getTitle();
+                    }
+                } catch (SQLException ignored) {
+                }
+            }
+        } catch (SQLException ignored) {
+        }
+
+        // Show booking details with movie name
         StringBuilder sb = new StringBuilder();
         sb.append("Booking Code  : ").append(foundBooking.getBookingCode()).append("\n");
+        sb.append("Movie         : ").append(movieTitle).append("\n");
+        if (!showtimeDisplay.isEmpty()) {
+            sb.append("Showtime      : ").append(showtimeDisplay).append("\n");
+        }
         sb.append("Booked On     : ").append(foundBooking.getBookingDate()).append("\n\n");
         sb.append("Seats:\n");
         for (BookingItem item : foundBooking.getBookingItems()) {
             sb.append("  Seat ").append(item.getSeatId())
-              .append("  [").append(item.getAttendeeType()).append("]")
-              .append("  $").append(String.format("%.2f", item.getItemPrice()))
-              .append("\n");
+                    .append("  [").append(item.getAttendeeType()).append("]")
+                    .append("  $").append(String.format("%.2f", item.getItemPrice()))
+                    .append("\n");
         }
         sb.append(String.format("\nTotal Paid    : $%.2f", foundBooking.getTotalPrice()));
         detailsArea.setText(sb.toString());
@@ -114,8 +140,8 @@ public class CancelPanel extends JPanel {
         boolean eligible = cancelService.isRefundEligible(foundBooking, LocalDateTime.now());
         if (eligible) {
             refundLabel.setForeground(new Color(40, 160, 80));
-            refundLabel.setText("✔  Eligible for full refund of $" +
-                String.format("%.2f", foundBooking.getTotalPrice()));
+            refundLabel.setText("✔  Eligible for full refund of $"
+                    + String.format("%.2f", foundBooking.getTotalPrice()));
         } else {
             refundLabel.setForeground(new Color(200, 60, 60));
             refundLabel.setText("✕  Outside refund window — no refund will be issued.");
@@ -125,24 +151,28 @@ public class CancelPanel extends JPanel {
     }
 
     private void handleCancel() {
-        if (foundBooking == null) return;
+        if (foundBooking == null) {
+            return;
+        }
 
         int choice = JOptionPane.showConfirmDialog(this,
-            "Cancel booking " + foundBooking.getBookingCode() + "?\nThis cannot be undone.",
-            "Confirm Cancellation", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+                "Cancel booking " + foundBooking.getBookingCode() + "?\nThis cannot be undone.",
+                "Confirm Cancellation", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
 
-        if (choice != JOptionPane.YES_OPTION) return;
+        if (choice != JOptionPane.YES_OPTION) {
+            return;
+        }
 
         boolean eligible = cancelService.isRefundEligible(foundBooking, LocalDateTime.now());
         boolean ok = cancelService.cancelBooking(foundBooking);
 
         if (ok) {
             String refundMsg = eligible
-                ? String.format("Refund of $%.2f processed.", foundBooking.getTotalPrice())
-                : "No refund issued (outside window).";
+                    ? String.format("Refund of $%.2f processed.", foundBooking.getTotalPrice())
+                    : "No refund issued (outside window).";
             JOptionPane.showMessageDialog(this,
-                "Booking " + foundBooking.getBookingCode() + " cancelled.\n" + refundMsg,
-                "Cancelled", JOptionPane.INFORMATION_MESSAGE);
+                    "Booking " + foundBooking.getBookingCode() + " cancelled.\n" + refundMsg,
+                    "Cancelled", JOptionPane.INFORMATION_MESSAGE);
 
             codeField.setText("");
             detailsArea.setText("Enter a booking code above and click Look Up.");
@@ -151,8 +181,8 @@ public class CancelPanel extends JPanel {
             foundBooking = null;
         } else {
             JOptionPane.showMessageDialog(this,
-                "Cancellation failed. Please try again.",
-                "Error", JOptionPane.ERROR_MESSAGE);
+                    "Cancellation failed. Please try again.",
+                    "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 }

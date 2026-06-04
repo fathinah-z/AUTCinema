@@ -14,7 +14,6 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
-
 public class BrowseBookPanel extends JPanel {
 
     private final BrowsingService browsingService;
@@ -62,6 +61,8 @@ public class BrowseBookPanel extends JPanel {
 
     //  UI  
     private void buildUI() {
+        UIManager.put("Button.foreground", Color.BLACK);
+        UIManager.put("Button.disabledForeground", Color.GRAY);
         setLayout(new BorderLayout(8, 8));
         setBorder(new EmptyBorder(10, 10, 10, 10));
 
@@ -154,6 +155,7 @@ public class BrowseBookPanel extends JPanel {
         p.add(sectionLabel("Available Seats  (Ctrl+click to select multiple)"));
         seatJList = new JList<>(seatListModel);
         seatJList.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
+        seatJList.setSelectionForeground(Color.BLACK);
         seatJList.addListSelectionListener(e -> {
             if (!e.getValueIsAdjusting()) {
                 updateTotal();
@@ -173,12 +175,13 @@ public class BrowseBookPanel extends JPanel {
         p.add(totalLabel);
         p.add(vgap(6));
 
-        confirmBtn = new JButton("✔  Confirm & Pay");
+        //confirm button
+        confirmBtn = new JButton("<html><span style='color:black;font-weight:bold'>✔  Confirm &amp; Pay</span></html>");
         confirmBtn.setAlignmentX(Component.LEFT_ALIGNMENT);
         confirmBtn.setEnabled(false);
-        confirmBtn.setBackground(new Color(46, 139, 87));
-        confirmBtn.setForeground(Color.WHITE);
-        confirmBtn.setFont(confirmBtn.getFont().deriveFont(Font.BOLD, 13f));
+        confirmBtn.setBackground(new Color(220, 220, 220));
+        confirmBtn.setOpaque(true);
+        confirmBtn.setBorderPainted(true);
         confirmBtn.addActionListener(e -> confirmBooking());
         p.add(confirmBtn);
 
@@ -359,6 +362,17 @@ public class BrowseBookPanel extends JPanel {
         confirmBtn.setEnabled(indices.length == required);
     }
 
+    /**
+     * Returns the currently selected movie, or null if none selected.
+     */
+    private Movie getSelectedMovie() {
+        int idx = movieJList.getSelectedIndex();
+        if (idx < 0 || idx >= allMovieDetails.size()) {
+            return null;
+        }
+        return allMovieDetails.get(idx).getMovie();
+    }
+
     private void confirmBooking() {
         onShowtimeSelected();
         if (selectedShowInfo == null) {
@@ -385,6 +399,20 @@ public class BrowseBookPanel extends JPanel {
             selectedTypes.add(t);
         }
 
+        // --- R18 child check ---
+        Movie selectedMovie = getSelectedMovie();
+        if (selectedMovie != null && selectedMovie.getRating() == MovieRating.R18) {
+            for (AttendeeType type : selectedTypes) {
+                if (type == AttendeeType.CHILD) {
+                    JOptionPane.showMessageDialog(this,
+                            "⚠  Sorry, children (under 18) cannot book tickets for R18 rated movies.\n"
+                            + "Please change the attendee type or select a different movie.",
+                            "R18 Restriction", JOptionPane.WARNING_MESSAGE);
+                    return;
+                }
+            }
+        }
+
         // Calculate total for confirmation dialog
         double total = 0;
         for (int i = 0; i < seatsToBook.size(); i++) {
@@ -392,9 +420,11 @@ public class BrowseBookPanel extends JPanel {
                     * selectedTypes.get(i).getPriceModifier();
         }
 
+        String movieTitle = (selectedMovie != null) ? selectedMovie.getTitle() : "Unknown Movie";
+
         int pay = JOptionPane.showConfirmDialog(this,
-                String.format("Confirm payment of $%.2f for %d seat(s)?",
-                        total, seatsToBook.size()),
+                String.format("Confirm payment of $%.2f for %d seat(s)?\nMovie: %s",
+                        total, seatsToBook.size(), movieTitle),
                 "Confirm Payment", JOptionPane.YES_NO_OPTION);
 
         if (pay != JOptionPane.YES_OPTION) {
@@ -418,7 +448,7 @@ public class BrowseBookPanel extends JPanel {
                     "Booking failed. A selected seat may have just been taken.",
                     "Booking Failed", JOptionPane.ERROR_MESSAGE);
         } else {
-            showConfirmationDialog(bookingCode, cart);
+            showConfirmationDialog(bookingCode, cart, movieTitle);
             seatListModel.clear();
             availableSeats.clear();
             totalLabel.setText("Total: —");
@@ -428,24 +458,25 @@ public class BrowseBookPanel extends JPanel {
         }
     }
 
-    private void showConfirmationDialog(String bookingCode, List<BookingItem> cart) {
-    StringBuilder msg = new StringBuilder();
-    msg.append("✅  Booking Confirmed!\n\n");
-    msg.append("Booking Code : ").append(bookingCode).append("\n\n");
-    msg.append("Seats:\n");
-    for (BookingItem item : cart) {
-        msg.append("  • ").append(item.getSeatId())
-                .append("  [").append(item.getAttendeeType()).append("]")
-                .append("  $").append(String.format("%.2f", item.getItemPrice()))
-                .append("\n");
-    }
-    double total = cart.stream().mapToDouble(BookingItem::getItemPrice).sum();
-    msg.append(String.format("\nTotal Paid: $%.2f", total));
-    msg.append("\n\nView your ticket in the 'My Bookings' tab.");
+    private void showConfirmationDialog(String bookingCode, List<BookingItem> cart, String movieTitle) {
+        StringBuilder msg = new StringBuilder();
+        msg.append("✅  Booking Confirmed!\n\n");
+        msg.append("Movie        : ").append(movieTitle).append("\n");
+        msg.append("Booking Code : ").append(bookingCode).append("\n\n");
+        msg.append("Seats:\n");
+        for (BookingItem item : cart) {
+            msg.append("  • ").append(item.getSeatId())
+                    .append("  [").append(item.getAttendeeType()).append("]")
+                    .append("  $").append(String.format("%.2f", item.getItemPrice()))
+                    .append("\n");
+        }
+        double total = cart.stream().mapToDouble(BookingItem::getItemPrice).sum();
+        msg.append(String.format("\nTotal Paid: $%.2f", total));
+        msg.append("\n\nView your ticket in the 'My Bookings' tab.");
 
-    JOptionPane.showMessageDialog(this, msg.toString(),
-            "Booking Confirmed ✅", JOptionPane.INFORMATION_MESSAGE);
-}
+        JOptionPane.showMessageDialog(this, msg.toString(),
+                "Booking Confirmed ✅", JOptionPane.INFORMATION_MESSAGE);
+    }
 
     //  Helpers 
     private JLabel sectionLabel(String text) {
