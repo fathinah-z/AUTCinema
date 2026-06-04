@@ -128,10 +128,6 @@ public class TicketPDFGenerator {
             + "      <div class='field'><label>Showtime</label>"
             + "<span>" + escHtml(showtimeInfo) + "</span></div>\n"
             + "    </div>\n"
-            + "    <div class='row'>\n"
-            + "      <div class='field'><label>Booking Date</label>"
-            + "<span>" + escHtml(booking.getBookingDate().toString()) + "</span></div>\n"
-            + "    </div>\n"
             + "    <table>\n"
             + "      <tr><th>Seat</th><th>Attendee Type</th><th style='text-align:right'>Price</th></tr>\n"
             + rows

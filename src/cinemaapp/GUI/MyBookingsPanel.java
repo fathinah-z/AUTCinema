@@ -13,6 +13,7 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.io.File;
 import java.sql.SQLException;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -26,6 +27,9 @@ public class MyBookingsPanel extends JPanel {
     private DefaultTableModel tableModel;
     private JTable bookingsTable;
     private JTextArea detailArea;
+    
+    private static final DateTimeFormatter SHOWTIME_FMT =
+    DateTimeFormatter.ofPattern("EEE dd MMM yyyy, h:mm a");
 
     // Parallel list — same order as table rows
     private final List<Booking> loadedBookings = new ArrayList<>();
@@ -61,7 +65,7 @@ public class MyBookingsPanel extends JPanel {
         add(header, BorderLayout.NORTH);
 
         // Bookings table — now includes Movie column
-        String[] cols = {"Booking Code", "Movie", "Date Booked", "Showtime", "Seats", "Total Paid"};
+        String[] cols = {"Booking Code", "Movie", "Showtime", "Seats", "Total Paid"};
         tableModel = new DefaultTableModel(cols, 0) {
             @Override
             public boolean isCellEditable(int r, int c) {
@@ -76,7 +80,6 @@ public class MyBookingsPanel extends JPanel {
         bookingsTable.getColumnModel().getColumn(2).setPreferredWidth(120);
         bookingsTable.getColumnModel().getColumn(3).setPreferredWidth(180);
         bookingsTable.getColumnModel().getColumn(4).setPreferredWidth(70);
-        bookingsTable.getColumnModel().getColumn(5).setPreferredWidth(90);
         bookingsTable.getSelectionModel().addListSelectionListener(e -> {
             if (!e.getValueIsAdjusting()) {
                 showSelectedDetails();
@@ -127,7 +130,7 @@ public class MyBookingsPanel extends JPanel {
                 try {
                     Showtime st = showtimeDAO.findById(b.getShowtimeId());
                     if (st != null) {
-                        showtimeDisplay = st.getDateTime().toString();
+                        showtimeDisplay = st.getDateTime().format(SHOWTIME_FMT);
                         try {
                             Movie m = movieDAO.findById(st.getMovieId());
                             if (m != null) {
@@ -144,7 +147,6 @@ public class MyBookingsPanel extends JPanel {
                 tableModel.addRow(new Object[]{
                     b.getBookingCode(),
                     movieTitle,
-                    b.getBookingDate(),
                     showtimeDisplay,
                     b.getBookingItems().size() + " seat(s)",
                     String.format("$%.2f", b.getTotalPrice())
@@ -172,12 +174,11 @@ public class MyBookingsPanel extends JPanel {
         StringBuilder sb = new StringBuilder();
         sb.append("Booking Code : ").append(b.getBookingCode()).append("\n");
         sb.append("Movie        : ").append(movieTitle).append("\n");
-        sb.append("Booked On    : ").append(b.getBookingDate()).append("\n");
 
         try {
             Showtime st = showtimeDAO.findById(b.getShowtimeId());
             if (st != null) {
-                sb.append("Showtime     : ").append(st.getDateTime())
+                sb.append("Showtime     : ").append(st.getDateTime().format(SHOWTIME_FMT))
                         .append("  |  Screen ").append(st.getScreenId()).append("\n");
             }
         } catch (SQLException ignored) {

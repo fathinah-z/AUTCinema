@@ -88,7 +88,6 @@ public class DatabaseInitialiser {
                 + ")",
                 "CREATE TABLE Booking ("
                 + "  bookingCode  VARCHAR(20) NOT NULL PRIMARY KEY, "
-                + "  bookingDate  DATE        NOT NULL, "
                 + "  totalPrice   FLOAT       NOT NULL, "
                 + "  username     VARCHAR(50) NOT NULL, "
                 + "  showtimeId  VARCHAR(10) NOT NULL, "

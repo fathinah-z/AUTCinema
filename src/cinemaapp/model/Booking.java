@@ -12,14 +12,12 @@ public class Booking {
     private final String bookingCode;
     private final String showtimeId;
     private final List<BookingItem> bookingItems;
-    private final LocalDateTime bookingDate;
     private double totalPrice;
 
     public Booking(String bookingCode, String showtimeId) {
         this.bookingCode = bookingCode;
         this.showtimeId = showtimeId;
         this.bookingItems = new ArrayList<>();
-        this.bookingDate = LocalDateTime.now();
         this.totalPrice = 0.0;
     }
 
@@ -43,10 +41,6 @@ public class Booking {
 
     public List<BookingItem> getBookingItems() {
         return bookingItems;
-    }
-
-    public LocalDateTime getBookingDate() {
-        return bookingDate;
     }
 
     public double getTotalPrice() {

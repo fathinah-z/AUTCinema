@@ -7,7 +7,6 @@ import cinemaapp.model.Booking;
 import cinemaapp.model.BookingItem;
 
 import java.sql.*;
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -33,15 +32,14 @@ public class DerbyBookingDAO implements BookingDAO {
         try {
             // Insert Booking header
             String bookingSql
-                    = "INSERT INTO Booking (bookingCode, bookingDate, totalPrice, username, showtimeId) "
-                    + "VALUES (?, ?, ?, ?, ?)";
+                    = "INSERT INTO Booking (bookingCode, totalPrice, username, showtimeId) "
+                    + "VALUES (?, ?, ?, ?)";
 
             try (PreparedStatement ps = conn.prepareStatement(bookingSql)) {
                 ps.setString(1, booking.getBookingCode());
-                ps.setDate(2, Date.valueOf(LocalDate.now()));
-                ps.setDouble(3, booking.getTotalPrice());
-                ps.setString(4, username);
-                ps.setString(5, booking.getShowtimeId());
+                ps.setDouble(2, booking.getTotalPrice());
+                ps.setString(3, username);
+                ps.setString(4, booking.getShowtimeId());
                 ps.executeUpdate();
             }
 
@@ -109,7 +107,7 @@ public class DerbyBookingDAO implements BookingDAO {
     @Override
     public Booking findByBookingCode(String bookingCode) throws SQLException {
         String headerSql
-                = "SELECT b.bookingCode, b.bookingDate, b.totalPrice, b.showtimeId, "
+                = "SELECT b.bookingCode, b.totalPrice, b.showtimeId, "
                 + "       bi.seatId, bi.attendeeType, bi.itemPrice "
                 + "FROM Booking b "
                 + "JOIN BookingItem bi ON b.bookingCode = bi.bookingCode "
@@ -155,7 +153,7 @@ public class DerbyBookingDAO implements BookingDAO {
     @Override
     public List<Booking> findByUsername(String username) throws SQLException {
         // Retrieve all booking codes for the user, then reconstruct each booking
-        String codeSql = "SELECT bookingCode FROM Booking WHERE username = ? ORDER BY bookingDate DESC";
+        String codeSql = "SELECT bookingCode FROM Booking WHERE username = ?";
         List<String> codes = new ArrayList<>();
 
         try (PreparedStatement ps = dbManager.getConnection().prepareStatement(codeSql)) {

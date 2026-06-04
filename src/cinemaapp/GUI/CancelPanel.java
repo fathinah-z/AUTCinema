@@ -15,6 +15,7 @@ import javax.swing.border.TitledBorder;
 import java.awt.*;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 public class CancelPanel extends JPanel {
 
@@ -29,6 +30,9 @@ public class CancelPanel extends JPanel {
     private JButton confirmCancelBtn;
 
     private Booking foundBooking;
+    
+    private static final DateTimeFormatter SHOWTIME_FMT =
+    DateTimeFormatter.ofPattern("EEE dd MMM yyyy, h:mm a");
 
     public CancelPanel(CancelBookingService cancelService,
             DbBookingRepository bookingRepo,
@@ -123,9 +127,8 @@ public class CancelPanel extends JPanel {
         sb.append("Booking Code  : ").append(foundBooking.getBookingCode()).append("\n");
         sb.append("Movie         : ").append(movieTitle).append("\n");
         if (!showtimeDisplay.isEmpty()) {
-            sb.append("Showtime      : ").append(showtimeDisplay).append("\n");
+            sb.append("Showtime      : ").append(showtimeDisplay).append("\n\n");
         }
-        sb.append("Booked On     : ").append(foundBooking.getBookingDate()).append("\n\n");
         sb.append("Seats:\n");
         for (BookingItem item : foundBooking.getBookingItems()) {
             sb.append("  Seat ").append(item.getSeatId())
