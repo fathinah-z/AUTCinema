@@ -296,8 +296,9 @@ public class BrowseBookPanel extends JPanel {
 
     private void searchSeats() {
         onShowtimeSelected();
+        
         if (selectedShowInfo == null) {
-            JOptionPane.showMessageDialog(this, "Please select a showtime first.");
+            JOptionPane.showMessageDialog(this, "Please select a movie and showtime first.");
             return;
         }
 
@@ -454,7 +455,6 @@ public class BrowseBookPanel extends JPanel {
             totalLabel.setText("Total: —");
             confirmBtn.setEnabled(false);
             loadMovies();   // refresh available seat counts
-            searchSeats();
         }
     }
 
